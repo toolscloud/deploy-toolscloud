@@ -11,7 +11,6 @@ sudo docker run --name=postgresql -d \
 sudo docker run --name=redmine -d --link postgresql:postgresql \
   -p 8081:80 -p 8444:443 \
   -v /opt/redmine/data:/home/redmine/data \
-  --volumes-from data \
   toolscloud/redmine:latest
 
 sudo docker run --name='gitlab' -d --link postgresql:postgresql \

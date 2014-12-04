@@ -1,0 +1,5 @@
+access_key_id: "" # AWS Access Key ID
+secret_access_key: "" # AWS Secret Access Key
+ssh_private_key_path: "" # Location of your AWS Key pair file
+aws_keypair_name: ""
+aws_security_groups: [""]
