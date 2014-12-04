@@ -9,20 +9,31 @@ Vagrant.configure("2") do |config|
   #config.vm.provision :shell, path: "docker_container_creator.sh"
   
   config.vm.provision "docker" do |d|
-      d.pull_images "sameersbn/mysql:latest"
-      d.pull_images "sameersbn/redmine:2.6.0-1"
-      d.pull_images "sameersbn/gitlab:7.5.2"
+    d.pull_images "toolscloud/data:latest"
+    d.pull_images "toolscloud/postgresql:latest"
+    d.pull_images "toolscloud/redmine:latest"
+    d.pull_images "toolscloud/gitlab:latest"
 
-      d.run "mysql", image: "sameersbn/mysql",
-        args: "-d -e 'DB_NAME=redmine_production' -e 'DB_USER=redmine' -e 'DB_PASS=!AdewhmOP@12' -v /opt/mysql/data:/var/lib/mysql"
+    d.run "data", image: "toolscloud/data",
+      args: "-v $(pwd)/applications:/applications"
 
-      d.run "redmine", image: "sameersbn/redmine",
-        args: "-d --link mysql:mysql -p 8081:80 -p 8444:443 -v /opt/redmine/data:/home/redmine/data"
+    d.run "postgresql", image: "toolscloud/postgresql",
+      args: "-d -e 'DB_NAME=redmine_production' -e 'DB_USER=redmine' \
+-e 'DB_PASS=!AdewhmOP@12' --volumes-from data \
+-v /applications/var/lib/postgresql:/applications/var/lib/postgresql \
+-v /applications/run/postgresql:/applications/run/postgresql"
 
-      d.run "gitlab", image: "sameersbn/gitlab",      
-        args: "-d -e 'GITLAB_PORT=8082' -e 'GITLAB_SSH_PORT=10022' -p 10022:22 -p 8082:80 -p 8445:443 -v /var/run/docker.sock:/run/docker.sock -v $(which docker):/bin/docker"
+    d.run "redmine", image: "toolscloud/redmine",
+      args: "-d --link postgresql:postgresql -p 8081:80 -p 8444:443 \
+--volumes-from data -v /applications/redmine/data:/applications/redmine/data \
+-v /applications/var/log/redmine:/applications/var/log/redmine"
 
-    end
+    d.run "gitlab", image: "toolscloud/gitlab",      
+      args: "-d -e 'GITLAB_PORT=8082' -e 'GITLAB_SSH_PORT=10022' \
+--link postgresql:postgresql -p 10022:22 -p 8082:80 -p 8445:443 -volumes-from data \
+-v /var/run/docker.sock:/run/docker.sock -v $(which docker):/bin/docker"
+
+  end
 
   config.vm.provider :aws do |aws, override|
     aws.access_key_id = CONF["access_key_id"]
