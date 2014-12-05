@@ -52,7 +52,7 @@ Vagrant.configure("2") do |config|
       aws.secret_access_key = CONF["secret_access_key"]
       aws.keypair_name = CONF["aws_keypair_name"]
       aws.security_groups = CONF["aws_security_groups"]
-      aws.ami = "ami-736e6536"#"ami-014f4144"
+      aws.ami = "ami-adbeb5e8" #"ami-736e6536"#"ami-014f4144"
       aws.instance_type = "m3.medium"
       aws.region = "us-west-1"
       override.ssh.username = "ubuntu"
