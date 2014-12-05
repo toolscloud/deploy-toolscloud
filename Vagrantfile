@@ -38,6 +38,7 @@ Vagrant.configure("2") do |config|
     test.vm.box_url = "https://cloud-images.ubuntu.com/vagrant/trusty/current/trusty-server-cloudimg-amd64-vagrant-disk1.box"
     docker_provision(test)
     test.vm.network :forwarded_port, host: 8081, guest: 8081
+    test.vm.network :forwarded_port, host: 8082, guest: 8082
   end
 
   config.vm.define :awsvm do |awsvm|
