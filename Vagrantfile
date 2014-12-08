@@ -8,6 +8,7 @@ def docker_provision(config)
     d.pull_images "sameersbn/postgresql:latest"
     d.pull_images "sameersbn/redmine:latest"
     d.pull_images "sameersbn/gitlab:latest"
+    d.pull_images "jenkins:latest"
 
     d.run "data", image: "toolscloud/data"
 
@@ -24,9 +25,11 @@ def docker_provision(config)
 
     d.run "gitlab", image: "sameersbn/gitlab",      
       args: "-d -e 'GITLAB_PORT=8082' -e 'GITLAB_SSH_PORT=10022' \
---link postgresql:postgresql -p 10022:22 -p 8082:80 -p 8445:443 -volumes-from data \
--v /var/run/docker.sock:/run/docker.sock -v $(which docker):/bin/docker"
+--link postgresql:postgresql -p 10022:22 -p 8082:80 -p 8445:443 --volumes-from data \
+-v /applications/var/run/docker.sock:/run/docker.sock"
 
+    d.run "jenkins", image: "jenkins",
+      args: "-p 8083:8080 -p 5000:5000 --volumes-from data"
   end
 end
 
@@ -36,9 +39,17 @@ Vagrant.configure("2") do |config|
     test.vm.hostname = "basemachine-tc"
     test.vm.box = "trusty-server-cloudimg-amd64-vagrant-disk1"
     test.vm.box_url = "https://cloud-images.ubuntu.com/vagrant/trusty/current/trusty-server-cloudimg-amd64-vagrant-disk1.box"
+
+    test.vm.provider :virtualbox do |v|
+      v.memory = 2048
+      v.cpus = 2
+    end
+
     docker_provision(test)
+    test.vm.network :forwarded_port, host: 50000, guest: 50000
     test.vm.network :forwarded_port, host: 8081, guest: 8081
     test.vm.network :forwarded_port, host: 8082, guest: 8082
+    test.vm.network :forwarded_port, host: 8083, guest: 8083
   end
 
   config.vm.define :awsvm do |awsvm|
@@ -52,7 +63,7 @@ Vagrant.configure("2") do |config|
       aws.secret_access_key = CONF["secret_access_key"]
       aws.keypair_name = CONF["aws_keypair_name"]
       aws.security_groups = CONF["aws_security_groups"]
-      aws.ami = "ami-adbeb5e8" #"ami-736e6536"#"ami-014f4144"
+      aws.ami = "ami-adbeb5e8"
       aws.instance_type = "m3.medium"
       aws.region = "us-west-1"
       override.ssh.username = "ubuntu"
