@@ -9,6 +9,7 @@ def docker_provision(config)
     d.pull_images "sameersbn/redmine:latest"
     d.pull_images "sameersbn/gitlab:latest"
     d.pull_images "jenkins:latest"
+    d.pull_images "griff/sonatype-nexus:latest"
 
     d.run "data", image: "toolscloud/data"
 
@@ -30,6 +31,9 @@ def docker_provision(config)
 
     d.run "jenkins", image: "jenkins",
       args: "-p 8083:8080 -p 5000:5000 --volumes-from data"
+
+    d.run "nexus", image: "griff/sonatype-nexus",
+      args: "-p 8084:8081 --volumes-from data -v /applications/opt/sonatype-work:/opt/sonatype-work"
   end
 end
 
@@ -50,6 +54,7 @@ Vagrant.configure("2") do |config|
     test.vm.network :forwarded_port, host: 8081, guest: 8081
     test.vm.network :forwarded_port, host: 8082, guest: 8082
     test.vm.network :forwarded_port, host: 8083, guest: 8083
+    test.vm.network :forwarded_port, host: 8084, guest: 8084
   end
 
   config.vm.define :awsvm do |awsvm|
