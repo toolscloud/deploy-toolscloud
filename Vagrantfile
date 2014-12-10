@@ -5,33 +5,44 @@ CONF = YAML::load_file("vagrant_config.yml")
 def docker_provision(config)
   config.vm.provision "docker" do |d|
     d.pull_images "toolscloud/data:latest"
-    d.pull_images "toolscloud/postgres:latest"
+    d.pull_images "toolscloud/postgresql:latest"
+    d.pull_images "sameersbn/redis:latest"
     d.pull_images "sameersbn/redmine:latest"
     d.pull_images "sameersbn/gitlab:latest"
-    d.pull_images "jenkins:latest"
+    d.pull_images "jenkins:1.585" 
     d.pull_images "griff/sonatype-nexus:latest"
 
     d.run "data", image: "toolscloud/data"
 
-    d.run "postgresql", image: "toolscloud/postgres",
-      args: "-d --volumes-from data \
--v /applications/var/lib/postgresql/data:/var/lib/postgresql/data"
+    d.run "redis", image: "redis",
+      cmd: "redis-server --appendonly yes",
+      args: "--volumes-from data -v /applications/docker/data:/data"
+
+    d.run "postgresql", image: "toolscloud/postgresql",
+      args: "--volumes-from data \
+-v /applications/var/lib/postgresql:/var/lib/postgresql \
+-v /applications/run/postgresql:/run/postgresql"
+
+    d.run "redis", image: "sameersbn/redis",
+      args: "-v /applications/opt/redis:/var/lib/redis"
 
     d.run "redmine", image: "sameersbn/redmine",
-      args: "-d --link postgresql:postgresql -p 8081:80 -p 8444:443 \
+      args: "--link postgresql:postgresql -p 8081:80 -p 8444:443 \
+-e 'DB_NAME=redmine_production' -e 'DB_USER=redmine' -e 'DB_PASS=!AdewhmOP@12' \
 --volumes-from data -v /applications/redmine/data:/home/redmine/data \
 -v /applications/var/log/redmine:/var/log/redmine"
 
     d.run "gitlab", image: "sameersbn/gitlab",      
-      args: "-d -e 'GITLAB_PORT=8082' -e 'GITLAB_SSH_PORT=10022' \
---link postgresql:postgresql -p 10022:22 -p 8082:80 -p 8445:443 --volumes-from data \
--v /applications/var/run/docker.sock:/run/docker.sock"
+      args: "-e 'GITLAB_PORT=8082' -e 'GITLAB_SSH_PORT=10022' \
+--link postgresql:postgresql --link redis:redis -p 10022:22 -p 8082:80 -p 8445:443 \
+--volumes-from data -v /applications/var/run/docker.sock:/run/docker.sock"
 
     d.run "jenkins", image: "jenkins",
       args: "-p 8083:8080 -p 5000:5000 --volumes-from data"
 
     d.run "nexus", image: "griff/sonatype-nexus",
       args: "-p 8084:8081 --volumes-from data -v /applications/opt/sonatype-work:/opt/sonatype-work"
+
   end
 end
 
