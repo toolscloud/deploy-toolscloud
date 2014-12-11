@@ -37,7 +37,7 @@ def docker_provision(config)
 --link postgresql:postgresql --link redis:redisio -p 10022:22 -p 8082:80 -p 8445:443 \
 --volumes-from data -v /applications/var/log/gitlab:/var/log/gitlab -v /applications/home/git/data:/home/git/data"
 
-    d.run "jenkins", image: "jenkins",
+    d.run "jenkins", image: "jenkins:1.585",
       args: "-p 8083:8080 -p 5000:5000 --volumes-from data"
 
     d.run "nexus", image: "griff/sonatype-nexus",
