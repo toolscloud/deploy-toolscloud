@@ -11,14 +11,10 @@ def docker_provision(config)
     d.pull_images "sameersbn/gitlab:latest"
     d.pull_images "jenkins:1.585" 
     d.pull_images "griff/sonatype-nexus:latest"
-    #d.pull_images "toolscloud/sonar-mysql:latest"
     d.pull_images "toolscloud/sonar-server:latest"
+    d.pull_images "osixia/phpldapadmin:latest"
 
     d.run "data", image: "toolscloud/data"
-
-    d.run "redis", image: "redis",
-      cmd: "redis-server --appendonly yes",
-      args: "--volumes-from data -v /applications/docker/data:/data"
 
     d.run "postgresql", image: "toolscloud/postgresql",
       args: "--volumes-from data \
@@ -26,7 +22,7 @@ def docker_provision(config)
 -v /applications/run/postgresql:/run/postgresql"
 
     d.run "redis", image: "sameersbn/redis",
-      args: "-v /applications/opt/redis:/var/lib/redis"
+      args: "--volumes-from data -v /applications/opt/redis:/var/lib/redis"
 
     d.run "redmine", image: "sameersbn/redmine",
       args: "--link postgresql:postgresql -p 8081:80 -p 8444:443 \
@@ -36,8 +32,10 @@ def docker_provision(config)
 
     d.run "gitlab", image: "sameersbn/gitlab",      
       args: "-e 'GITLAB_PORT=8082' -e 'GITLAB_SSH_PORT=10022' \
---link postgresql:postgresql --link redis:redis -p 10022:22 -p 8082:80 -p 8445:443 \
---volumes-from data -v /applications/var/run/docker.sock:/run/docker.sock"
+-e 'SMTP_USER=summaemailfortest@gmail.com' -e 'SMTP_PASS=teste123' \
+-e 'GITLAB_HOST=git.local.host' -e 'GITLAB_EMAIL=gitlab@local.host' \
+--link postgresql:postgresql --link redis:redisio -p 10022:22 -p 8082:80 -p 8445:443 \
+--volumes-from data -v /applications/var/log/gitlab:/var/log/gitlab -v /applications/home/git/data:/home/git/data"
 
     d.run "jenkins", image: "jenkins",
       args: "-p 8083:8080 -p 5000:5000 --volumes-from data"
@@ -45,11 +43,12 @@ def docker_provision(config)
     d.run "nexus", image: "griff/sonatype-nexus",
       args: "-p 8084:8081 --volumes-from data -v /applications/opt/sonatype-work:/opt/sonatype-work"
 
-    #d.run "smysql", image: "toolscloud/sonar-mysql",
-    #  args: "-p 3306:3306"
-
     d.run "sonar", image: "toolscloud/sonar-server",
       args: "-p 9000:9000 --link postgresql:db -e 'DBMS=postgresql'"
+
+    d.run "phpldapadmin", image: "osixia/phpldapadmin",
+      args: "-p 8085:80 -p 8446:443 -e LDAP_HOST=ldap.example.com \
+-e LDAP_BASE_DN=dc=example,dc=com -e LDAP_LOGIN_DN=cn=admin,dc=example,dc=com"
   end
 end
 
@@ -72,6 +71,10 @@ Vagrant.configure("2") do |config|
     test.vm.network :forwarded_port, host: 8082, guest: 8082
     test.vm.network :forwarded_port, host: 8083, guest: 8083
     test.vm.network :forwarded_port, host: 8084, guest: 8084
+    test.vm.network :forwarded_port, host: 8085, guest: 8085
+    test.vm.network :forwarded_port, host: 8444, guest: 8444
+    test.vm.network :forwarded_port, host: 8445, guest: 8445
+    test.vm.network :forwarded_port, host: 8446, guest: 8446
     test.vm.network :forwarded_port, host: 9000, guest: 9000
   end
 
