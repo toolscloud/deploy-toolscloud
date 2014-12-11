@@ -11,7 +11,7 @@ def docker_provision(config)
     d.pull_images "sameersbn/gitlab:latest"
     d.pull_images "jenkins:1.585" 
     d.pull_images "griff/sonatype-nexus:latest"
-    d.pull_images "toolscloud/sonar-mysql:latest"
+    #d.pull_images "toolscloud/sonar-mysql:latest"
     d.pull_images "toolscloud/sonar-server:latest"
 
     d.run "data", image: "toolscloud/data"
@@ -45,11 +45,11 @@ def docker_provision(config)
     d.run "nexus", image: "griff/sonatype-nexus",
       args: "-p 8084:8081 --volumes-from data -v /applications/opt/sonatype-work:/opt/sonatype-work"
 
-    d.run "smysql", image: "toolscloud/sonar-mysql",
-      args: "-p 3306:3306"
+    #d.run "smysql", image: "toolscloud/sonar-mysql",
+    #  args: "-p 3306:3306"
 
     d.run "sonar", image: "toolscloud/sonar-server",
-      args: "-p 9000:9000 --link smysql:db"
+      args: "-p 9000:9000 --link postgresql:db -e 'DBMS=postgresql'"
   end
 end
 
