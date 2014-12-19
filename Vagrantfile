@@ -10,7 +10,7 @@ def docker_provision(config)
     d.pull_images "sameersbn/redmine:latest"
     d.pull_images "sameersbn/gitlab:latest"
     d.pull_images "jenkins:1.585" 
-    d.pull_images "griff/sonatype-nexus:latest"
+    d.pull_images "toolscloud/sonatype-nexus:latest"
     d.pull_images "toolscloud/sonar-server:latest"
     d.pull_images "osixia/phpldapadmin:latest"
 
@@ -40,7 +40,7 @@ def docker_provision(config)
     d.run "jenkins", image: "jenkins:1.585",
       args: "-p 8083:8080 -p 5000:5000 --volumes-from data"
 
-    d.run "nexus", image: "griff/sonatype-nexus",
+    d.run "nexus", image: "toolscloud/sonatype-nexus",
       args: "-p 8084:8081 --volumes-from data -v /applications/opt/sonatype-work:/opt/sonatype-work"
 
     d.run "sonar", image: "toolscloud/sonar-server",
