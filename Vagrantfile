@@ -12,7 +12,7 @@ def docker_provision(config)
     d.pull_images "jenkins:1.585" 
     d.pull_images "toolscloud/sonatype-nexus:latest"
     d.pull_images "toolscloud/sonar-server:latest"
-    d.pull_images "osixia/phpldapadmin:latest"
+    d.pull_images "toolscloud/ldap:latest"
 
     d.run "data", image: "toolscloud/data"
 
@@ -46,10 +46,9 @@ def docker_provision(config)
     d.run "sonar", image: "toolscloud/sonar-server",
       args: "-p 9000:9000 --link postgresql:db -e 'DBMS=postgresql'"
 
-    d.run "phpldapadmin", image: "osixia/phpldapadmin",
-      args: "-p 8085:80 -p 8446:443 -e LDAP_HOST=ldap.example.com \
--e LDAP_BASE_DN=dc=example,dc=com -e LDAP_LOGIN_DN=cn=admin,dc=example,dc=com"
-  end
+    d.run "ldap", image: "toolscloud/ldap",
+      args: "-p 389:389 --volumes-from data -v /applications/usr/local/etc/openldap:/usr/local/etc/openldap"
+  end # --link openldap:openldap 
 end
 
 Vagrant.configure("2") do |config|
@@ -84,7 +83,7 @@ Vagrant.configure("2") do |config|
     awsvm.vm.box_url = "https://github.com/mitchellh/vagrant-aws/raw/master/dummy.box"
 
     docker_provision(awsvm)
-    
+
     awsvm.vm.provider :aws do |aws, override|
       aws.access_key_id = CONF["access_key_id"]
       aws.secret_access_key = CONF["secret_access_key"]
@@ -98,4 +97,9 @@ Vagrant.configure("2") do |config|
     end
   end
 
+  config.vm.define :localvm2 do |test|
+    test.vm.hostname = "basemachine-tc2"
+    test.vm.box = "trusty-server-cloudimg-amd64-vagrant-disk1"
+    test.vm.box_url = "https://cloud-images.ubuntu.com/vagrant/trusty/current/trusty-server-cloudimg-amd64-vagrant-disk1.box"
+  end
 end
