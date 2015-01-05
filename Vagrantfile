@@ -97,9 +97,24 @@ Vagrant.configure("2") do |config|
     end
   end
 
-  config.vm.define :localvm2 do |test|
-    test.vm.hostname = "basemachine-tc2"
-    test.vm.box = "trusty-server-cloudimg-amd64-vagrant-disk1"
-    test.vm.box_url = "https://cloud-images.ubuntu.com/vagrant/trusty/current/trusty-server-cloudimg-amd64-vagrant-disk1.box"
+  config.vm.define :localvm2 do |test2|
+    test2.vm.hostname = "basemachine-tc2"
+    test2.vm.box = "trusty-server-cloudimg-amd64-vagrant-disk1"
+    test2.vm.box_url = "https://cloud-images.ubuntu.com/vagrant/trusty/current/trusty-server-cloudimg-amd64-vagrant-disk1.box"
+
+    test2.vm.provider :virtualbox do |v|
+      v.memory = 1024
+      v.cpus = 2
+    end
+
+    test2.vm.provision "shell", path: "ldap.sh"
+=begin    
+	test2.vm.provision "docker" do |d|
+      d.pull_images "toolscloud/ldap:latest"
+
+      d.run "ldap", image: "toolscloud/ldap",
+        args: "-p 389:389 -v /applications/usr/local/etc/openldap:/usr/local/etc/openldap"
+	end
+=end
   end
 end
