@@ -113,16 +113,12 @@ Vagrant.configure("2") do |config|
 	test2.vm.provision "docker" do |d|
       d.pull_images "toolscloud/ldap:latest"
       d.pull_images "toolscloud/phpldapadmin:latest"
-      d.pull_images "toolscloud/pla:latest"
 
       d.run "ldap", image: "toolscloud/ldap",
         args: "-p 389:389 -v /applications/usr/local/etc/openldap:/usr/local/etc/openldap"
 
       d.run "pla", image: "toolscloud/phpldapadmin",
         args: "-p 8080:80 -p 8443:443 --link ldap:ldap"
-
-      #d.run "pla", image: "toolscloud/pla",
-      #  args: "-p 8080:80 -p 8443:443 --link ldap:ldap"
 	end
   end
 end
