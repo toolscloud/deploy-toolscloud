@@ -110,7 +110,6 @@ Vagrant.configure("2") do |config|
     test2.vm.network :forwarded_port, host: 8443, guest: 8443
     test2.vm.network :forwarded_port, host: 8080, guest: 8080
 
-    # test2.vm.provision "shell", path: "ldap.sh"
 	test2.vm.provision "docker" do |d|
       d.pull_images "toolscloud/ldap:latest"
       d.pull_images "toolscloud/phpldapadmin:latest"
