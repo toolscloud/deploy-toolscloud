@@ -13,6 +13,8 @@ def docker_provision(config)
     d.pull_images "toolscloud/sonatype-nexus:latest"
     d.pull_images "toolscloud/sonar-server:latest"
     d.pull_images "toolscloud/ldap:latest"
+    d.pull_images "toolscloud/phpldapadmin:latest"
+    d.pull_images "toolscloud/manager:latest"
 
     d.run "data", image: "toolscloud/data"
 
@@ -48,7 +50,13 @@ def docker_provision(config)
 
     d.run "ldap", image: "toolscloud/ldap",
       args: "-p 389:389 --volumes-from data -v /applications/usr/local/etc/openldap:/usr/local/etc/openldap"
-  end # --link openldap:openldap 
+
+    d.run "pla", image: "toolscloud/phpldapadmin",
+      args: "-p 8086:80 -p 8447:443 --link ldap:ldap"
+
+    d.run "manager", image: "toolscloud/manager",
+      args: "--link postgresql:postgresql"
+  end
 end
 
 Vagrant.configure("2") do |config|
@@ -71,9 +79,11 @@ Vagrant.configure("2") do |config|
     test.vm.network :forwarded_port, host: 8083, guest: 8083
     test.vm.network :forwarded_port, host: 8084, guest: 8084
     test.vm.network :forwarded_port, host: 8085, guest: 8085
+    test.vm.network :forwarded_port, host: 8086, guest: 8086
     test.vm.network :forwarded_port, host: 8444, guest: 8444
     test.vm.network :forwarded_port, host: 8445, guest: 8445
     test.vm.network :forwarded_port, host: 8446, guest: 8446
+    test.vm.network :forwarded_port, host: 8447, guest: 8447
     test.vm.network :forwarded_port, host: 9000, guest: 9000
   end
 
