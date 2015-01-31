@@ -10,7 +10,7 @@ def docker_provision(config)
     d.pull_images "sameersbn/redmine:latest"
     d.pull_images "sameersbn/gitlab:latest"
     d.pull_images "jenkins:1.585" 
-    d.pull_images "toolscloud/sonatype-nexus:latest"
+    d.pull_images "griff/sonatype-nexus:latest"
     d.pull_images "toolscloud/sonar-server:latest"
     d.pull_images "toolscloud/ldap:latest"
     d.pull_images "toolscloud/phpldapadmin:latest"
@@ -42,7 +42,7 @@ def docker_provision(config)
     d.run "jenkins", image: "jenkins:1.585",
       args: "-p 8083:8080 -p 5000:5000 --volumes-from data"
 
-    d.run "nexus", image: "toolscloud/sonatype-nexus",
+    d.run "nexus", image: "griff/sonatype-nexus",
       args: "-p 8084:8081 --volumes-from data -v /applications/opt/sonatype-work:/opt/sonatype-work"
 
     d.run "sonar", image: "toolscloud/sonar-server",
@@ -113,22 +113,29 @@ Vagrant.configure("2") do |config|
     test2.vm.box_url = "https://cloud-images.ubuntu.com/vagrant/trusty/current/trusty-server-cloudimg-amd64-vagrant-disk1.box"
 
     test2.vm.provider :virtualbox do |v|
-      v.memory = 1024
+      v.memory = 2048
       v.cpus = 2
     end
 
-    test2.vm.network :forwarded_port, host: 8443, guest: 8443
+    test2.vm.network :forwarded_port, host: 3000, guest: 3000
     test2.vm.network :forwarded_port, host: 8080, guest: 8080
+    test2.vm.network :forwarded_port, host: 8081, guest: 8081
+    test2.vm.network :forwarded_port, host: 8443, guest: 8443
+    test2.vm.network :forwarded_port, host: 8444, guest: 8444
 
 	test2.vm.provision "docker" do |d|
       d.pull_images "toolscloud/ldap:latest"
       d.pull_images "toolscloud/phpldapadmin:latest"
+      d.pull_images "toolscloud/manager:latest"
 
       d.run "ldap", image: "toolscloud/ldap",
         args: "-p 389:389 -v /applications/usr/local/etc/openldap:/usr/local/etc/openldap"
 
       d.run "pla", image: "toolscloud/phpldapadmin",
         args: "-p 8080:80 -p 8443:443 --link ldap:ldap"
+
+      #d.run "manager", image: "toolscloud/manager",
+      #  args: "-p 8081:80 -p 8444:443 -p 3000:3000 --link ldap:ldap"
 	end
   end
 end
