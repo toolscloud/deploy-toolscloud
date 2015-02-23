@@ -3,6 +3,8 @@ require 'yaml'
 CONF = YAML::load_file("vagrant_config.yml")
 
 def docker_provision(config)
+  config.vm.provision "file", source: "~/.dockercfg", destination: "~/.dockercfg"
+  config.vm.provision "shell", inline: "sudo cp /home/vagrant/.dockercfg /root/.dockercfg"
   config.vm.provision "docker" do |d|
     d.pull_images "toolscloud/data:latest"
     d.pull_images "toolscloud/postgresql:latest"
@@ -14,7 +16,7 @@ def docker_provision(config)
     d.pull_images "toolscloud/sonar-server:latest"
     d.pull_images "toolscloud/ldap:latest"
     d.pull_images "toolscloud/phpldapadmin:latest"
-    d.pull_images "toolscloud/manager:latest"
+    #d.pull_images "toolscloud/manager:latest"
 
     d.run "data", image: "toolscloud/data"
 
@@ -54,8 +56,8 @@ def docker_provision(config)
     d.run "pla", image: "toolscloud/phpldapadmin",
       args: "-p 8086:80 -p 8447:443 --link ldap:ldap"
 
-    d.run "manager", image: "toolscloud/manager",
-      args: "--link postgresql:postgresql"
+    #d.run "manager", image: "toolscloud/manager",
+    #  args: "--link postgresql:postgresql"
   end
 end
 
