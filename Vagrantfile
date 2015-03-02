@@ -17,6 +17,7 @@ def docker_provision(config)
     d.pull_images "toolscloud/ldap:latest"
     d.pull_images "toolscloud/phpldapadmin:latest"
     #d.pull_images "toolscloud/manager:latest"
+    d.pull_images "toolscloud/gitblit:latest"
 
     d.run "data", image: "toolscloud/data"
 
@@ -25,8 +26,8 @@ def docker_provision(config)
 -v /applications/var/lib/postgresql:/var/lib/postgresql \
 -v /applications/run/postgresql:/run/postgresql"
 
-    d.run "redis", image: "sameersbn/redis",
-      args: "--volumes-from data -v /applications/opt/redis:/var/lib/redis"
+    #d.run "redis", image: "sameersbn/redis",
+    #  args: "--volumes-from data -v /applications/opt/redis:/var/lib/redis"
 
     d.run "redmine", image: "sameersbn/redmine",
       args: "--link postgresql:postgresql -p 8081:80 -p 8444:443 \
@@ -34,12 +35,14 @@ def docker_provision(config)
 --volumes-from data -v /applications/redmine/data:/home/redmine/data \
 -v /applications/var/log/redmine:/var/log/redmine"
 
+=begin
     d.run "gitlab", image: "sameersbn/gitlab",      
       args: "-e 'GITLAB_PORT=8082' -e 'GITLAB_SSH_PORT=10022' \
 -e 'SMTP_USER=summaemailfortest@gmail.com' -e 'SMTP_PASS=teste123' \
 -e 'GITLAB_HOST=git.local.host' -e 'GITLAB_EMAIL=gitlab@local.host' \
 --link postgresql:postgresql --link redis:redisio -p 10022:22 -p 8082:80 -p 8445:443 \
 --volumes-from data -v /applications/var/log/gitlab:/var/log/gitlab -v /applications/home/git/data:/home/git/data"
+=end
 
     d.run "jenkins", image: "jenkins:1.585",
       args: "-p 8083:8080 -p 5000:5000 --volumes-from data"
@@ -54,10 +57,13 @@ def docker_provision(config)
       args: "-p 389:389 --volumes-from data -v /applications/usr/local/etc/openldap:/usr/local/etc/openldap"
 
     d.run "pla", image: "toolscloud/phpldapadmin",
-      args: "-p 8086:80 -p 8447:443 --link ldap:ldap"
+      args: "-p 8085:80 -p 8446:443 --link ldap:ldap"
 
     #d.run "manager", image: "toolscloud/manager",
     #  args: "--link postgresql:postgresql"
+
+    d.run "gitblit", image: "toolscloud/gitblit",
+      args: "-p 8086:80 -p 8447:443 -p 9418:9418 -p 29418:29418 --link ldap:ldap"
   end
 end
 
@@ -120,10 +126,12 @@ Vagrant.configure("2") do |config|
     end
 
     test2.vm.network :forwarded_port, host: 3000, guest: 3000
-    test2.vm.network :forwarded_port, host: 8080, guest: 8080
     test2.vm.network :forwarded_port, host: 8081, guest: 8081
-    test2.vm.network :forwarded_port, host: 8443, guest: 8443
+    test2.vm.network :forwarded_port, host: 8082, guest: 8082
+    test2.vm.network :forwarded_port, host: 8083, guest: 8083
     test2.vm.network :forwarded_port, host: 8444, guest: 8444
+    test2.vm.network :forwarded_port, host: 8445, guest: 8445
+    test2.vm.network :forwarded_port, host: 8446, guest: 8446
     test2.vm.network :forwarded_port, host: 9000, guest: 9000
 
     test2.vm.provision "file", source: "~/.dockercfg", destination: "~/.dockercfg"
@@ -132,9 +140,11 @@ Vagrant.configure("2") do |config|
       d.pull_images "toolscloud/data:latest"
       d.pull_images "toolscloud/postgresql:latest"
       d.pull_images "toolscloud/ldap:latest"
+      d.pull_images "sameersbn/redmine:latest"
       #d.pull_images "toolscloud/phpldapadmin:latest"
       #d.pull_images "toolscloud/manager:latest"
       d.pull_images "toolscloud/sonar-server"
+      d.pull_images "toolscloud/gitblit:latest"
 
       d.run "data", image: "toolscloud/data"
 
@@ -146,6 +156,12 @@ Vagrant.configure("2") do |config|
       d.run "ldap", image: "toolscloud/ldap",
         args: "-p 389:389 -v /applications/usr/local/etc/openldap:/usr/local/etc/openldap"
 
+      d.run "redmine", image: "sameersbn/redmine",
+        args: "--link postgresql:postgresql --link ldap:ldap -p 8081:80 -p 8444:443 \
+-e 'DB_NAME=redmine_production' -e 'DB_USER=redmine' -e 'DB_PASS=!AdewhmOP@12' \
+--volumes-from data -v /applications/redmine/data:/home/redmine/data \
+-v /applications/var/log/redmine:/var/log/redmine"
+
       d.run "sonar", image: "toolscloud/sonar-server",
         args: "-p 9000:9000 --link postgresql:db --link ldap:ldap -e 'DBMS=postgresql'"
 =begin
@@ -155,6 +171,8 @@ Vagrant.configure("2") do |config|
       d.run "manager", image: "toolscloud/manager",
         args: "-p 8081:80 -p 8444:443 -p 3000:3000 --link ldap:ldap"
 =end
+      d.run "gitblit", image: "toolscloud/gitblit",
+        args: "-p 8083:80 -p 8446:443 -p 9418:9418 -p 29418:29418 --link ldap:ldap"
 	end
   end
 end
