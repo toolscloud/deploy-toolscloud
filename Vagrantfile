@@ -8,9 +8,9 @@ def docker_provision(config)
   config.vm.provision "docker" do |d|
     d.pull_images "toolscloud/data:latest"
     d.pull_images "toolscloud/postgresql:latest"
-    d.pull_images "sameersbn/redis:latest"
-    d.pull_images "sameersbn/redmine:latest"
-    d.pull_images "sameersbn/gitlab:latest"
+    #d.pull_images "sameersbn/redis:latest"
+    d.pull_images "toolscloud/redmine:latest"
+    #d.pull_images "sameersbn/gitlab:latest"
     d.pull_images "jenkins:1.585" 
     d.pull_images "toolscloud/sonatype-nexus:latest"
     d.pull_images "toolscloud/sonar-server:latest"
@@ -29,8 +29,8 @@ def docker_provision(config)
     #d.run "redis", image: "sameersbn/redis",
     #  args: "--volumes-from data -v /applications/opt/redis:/var/lib/redis"
 
-    d.run "redmine", image: "sameersbn/redmine",
-      args: "--link postgresql:postgresql -p 8081:80 -p 8444:443 \
+    d.run "redmine", image: "toolscloud/redmine",
+      args: "--link postgresql:postgresql --link ldap:ldap -p 8081:80 -p 8444:443 \
 -e 'DB_NAME=redmine_production' -e 'DB_USER=redmine' -e 'DB_PASS=!AdewhmOP@12' \
 --volumes-from data -v /applications/redmine/data:/home/redmine/data \
 -v /applications/var/log/redmine:/var/log/redmine"
@@ -45,13 +45,13 @@ def docker_provision(config)
 =end
 
     d.run "jenkins", image: "jenkins:1.585",
-      args: "-p 8083:8080 -p 5000:5000 --volumes-from data"
+      args: "-p 8083:8080 -p 5000:5000 --link ldap:ldap --volumes-from data"
 
     d.run "nexus", image: "toolscloud/sonatype-nexus",
-      args: "-p 8084:8081 --volumes-from data -v /applications/opt/sonatype-work:/opt/sonatype-work"
+      args: "-p 8084:8081 --link ldap:ldap --volumes-from data -v /applications/opt/sonatype-work:/opt/sonatype-work"
 
     d.run "sonar", image: "toolscloud/sonar-server",
-      args: "-p 9000:9000 --link postgresql:db -e 'DBMS=postgresql'"
+      args: "-p 9000:9000 --link postgresql:db --link ldap:ldap -e 'DBMS=postgresql'"
 
     d.run "ldap", image: "toolscloud/ldap",
       args: "-p 389:389 --volumes-from data -v /applications/usr/local/etc/openldap:/usr/local/etc/openldap"
@@ -60,7 +60,7 @@ def docker_provision(config)
       args: "-p 8085:80 -p 8446:443 --link ldap:ldap"
 
     #d.run "manager", image: "toolscloud/manager",
-    #  args: "--link postgresql:postgresql"
+    #  args: "--link postgresql:postgresql --link ldap:ldap"
 
     d.run "gitblit", image: "toolscloud/gitblit",
       args: "-p 8086:80 -p 8447:443 -p 9418:9418 -p 29418:29418 --link ldap:ldap"
@@ -140,7 +140,7 @@ Vagrant.configure("2") do |config|
       d.pull_images "toolscloud/data:latest"
       d.pull_images "toolscloud/postgresql:latest"
       d.pull_images "toolscloud/ldap:latest"
-      d.pull_images "sameersbn/redmine:latest"
+      d.pull_images "toolscloud/redmine:latest"
       #d.pull_images "toolscloud/phpldapadmin:latest"
       #d.pull_images "toolscloud/manager:latest"
       d.pull_images "toolscloud/sonar-server"
@@ -156,7 +156,7 @@ Vagrant.configure("2") do |config|
       d.run "ldap", image: "toolscloud/ldap",
         args: "-p 389:389 -v /applications/usr/local/etc/openldap:/usr/local/etc/openldap"
 
-      d.run "redmine", image: "sameersbn/redmine",
+      d.run "redmine", image: "toolscloud/redmine",
         args: "--link postgresql:postgresql --link ldap:ldap -p 8081:80 -p 8444:443 \
 -e 'DB_NAME=redmine_production' -e 'DB_USER=redmine' -e 'DB_PASS=!AdewhmOP@12' \
 --volumes-from data -v /applications/redmine/data:/home/redmine/data \
