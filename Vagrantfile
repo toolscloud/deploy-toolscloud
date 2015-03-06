@@ -14,8 +14,8 @@ def docker_provision(config)
     d.pull_images "toolscloud/sonar-server:latest"
     d.pull_images "toolscloud/ldap:latest"
     d.pull_images "toolscloud/phpldapadmin:latest"
-    #d.pull_images "toolscloud/manager:latest"
     d.pull_images "toolscloud/gitblit:latest"
+    #d.pull_images "toolscloud/manager:latest"
 
     d.run "data", image: "toolscloud/data"
 
@@ -25,19 +25,19 @@ def docker_provision(config)
 -v /applications/run/postgresql:/run/postgresql"
 
     d.run "redmine", image: "toolscloud/redmine",
-      args: "--link postgresql:postgresql --link ldap:ldap -p 8081:80 -p 8444:443 \
+      args: "--link postgresql:postgresql --link ldap:ldap --link gitblit:git -p 8081:80 -p 8444:443 \
 -e 'DB_NAME=redmine_production' -e 'DB_USER=redmine' -e 'DB_PASS=!AdewhmOP@12' \
 --volumes-from data -v /applications/redmine/data:/home/redmine/data \
 -v /applications/var/log/redmine:/var/log/redmine"
 
     d.run "jenkins", image: "jenkins:1.585",
-      args: "-p 8083:8080 -p 5000:5000 --link ldap:ldap --volumes-from data"
+      args: "-p 8083:8080 -p 5000:5000 --link ldap:ldap --link postgresql:postgresql --link gitblit:git --link nexus:nexus --volumes-from data"
 
     d.run "nexus", image: "toolscloud/sonatype-nexus",
       args: "-p 8084:8081 --link ldap:ldap --volumes-from data -v /applications/opt/sonatype-work:/opt/sonatype-work"
 
     d.run "sonar", image: "toolscloud/sonar-server",
-      args: "-p 9000:9000 --link postgresql:db --link ldap:ldap -e 'DBMS=postgresql'"
+      args: "-p 9000:9000 --link postgresql:db --link ldap:ldap --link gitblit:git -e 'DBMS=postgresql'"
 
     d.run "ldap", image: "toolscloud/ldap",
       args: "-p 389:389 --volumes-from data -v /applications/usr/local/etc/openldap:/usr/local/etc/openldap"
@@ -45,11 +45,12 @@ def docker_provision(config)
     d.run "pla", image: "toolscloud/phpldapadmin",
       args: "-p 8085:80 -p 8446:443 --link ldap:ldap"
 
-    #d.run "manager", image: "toolscloud/manager",
-    #  args: "--link postgresql:postgresql --link ldap:ldap"
-
     d.run "gitblit", image: "toolscloud/gitblit",
       args: "-p 8086:80 -p 8447:443 -p 9418:9418 -p 29418:29418 --link ldap:ldap"
+
+    #d.run "manager", image: "toolscloud/manager",
+    #  args: "--link postgresql:postgresql --link ldap:ldap --link jenkins:jenkins --link redmine:redmine --link nexus:nexus --link sonar:sonar --link gitblit:git --link pla:pla"
+
   end
 end
 
@@ -62,7 +63,7 @@ Vagrant.configure("2") do |config|
   config.vm.provider "virtualbox" do |vb, override|
     vb.memory = 3072
     vb.cpus = 2
-    #override.vm.network :forwarded_port, host: 50000, guest: 50000
+    override.vm.network :forwarded_port, host: 50000, guest: 50000
     override.vm.network :forwarded_port, host: 8081, guest: 8081
     override.vm.network :forwarded_port, host: 8082, guest: 8082
     override.vm.network :forwarded_port, host: 8083, guest: 8083
