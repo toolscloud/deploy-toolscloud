@@ -9,13 +9,13 @@ def docker_provision(config)
     d.pull_images "toolscloud/data:latest"
     d.pull_images "toolscloud/postgresql:latest"
     d.pull_images "toolscloud/redmine:latest"
-    d.pull_images "jenkins:1.585" 
+    d.pull_images "toolscloud/jenkins:latest" 
     d.pull_images "toolscloud/sonatype-nexus:latest"
     d.pull_images "toolscloud/sonar-server:latest"
     d.pull_images "toolscloud/ldap:latest"
     d.pull_images "toolscloud/phpldapadmin:latest"
     d.pull_images "toolscloud/gitblit:latest"
-    #d.pull_images "toolscloud/manager:latest"
+    d.pull_images "toolscloud/manager:latest"
 
     d.run "data", image: "toolscloud/data"
 
@@ -39,7 +39,7 @@ def docker_provision(config)
     d.run "nexus", image: "toolscloud/sonatype-nexus",
       args: "-p 8084:8081 --link ldap:ldap --volumes-from data -v /applications/opt/sonatype-work:/opt/sonatype-work"
 
-    d.run "jenkins", image: "jenkins:1.585",
+    d.run "jenkins", image: "toolscloud/jenkins",
       args: "-p 8083:8080 -p 5000:5000 --link ldap:ldap --link postgresql:postgresql --link gitblit:git --link nexus:nexus --volumes-from data"
 
     d.run "sonar", image: "toolscloud/sonar-server",
@@ -48,8 +48,8 @@ def docker_provision(config)
     d.run "pla", image: "toolscloud/phpldapadmin",
       args: "-p 8085:80 -p 8446:443 --link ldap:ldap"
 
-    #d.run "manager", image: "toolscloud/manager",
-    #  args: "--link postgresql:postgresql --link ldap:ldap --link jenkins:jenkins --link redmine:redmine --link nexus:nexus --link sonar:sonar --link gitblit:git --link pla:pla"
+    d.run "manager", image: "toolscloud/manager",
+      args: "--link postgresql:postgresql --link ldap:ldap --link jenkins:jenkins --link redmine:redmine --link nexus:nexus --link sonar:sonar --link gitblit:git --link pla:pla"
 
   end
 end
