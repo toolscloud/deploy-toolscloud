@@ -51,7 +51,9 @@ def docker_provision(config)
       args: "-p 8085:80 -p 8446:443 --link ldap:ldap"
 
     d.run "manager", image: "toolscloud/manager",
-      args: "--link postgresql:postgresql --link ldap:ldap --link jenkins:jenkins --link redmine:redmine --link nexus:nexus --link sonar:sonar --link gitblit:git --link pla:pla"
+      args: "--link postgresql:postgresql --link ldap:ldap --link jenkins:jenkins \
+--link redmine:redmine --link nexus:nexus --link sonar:sonar --link gitblit:git \
+--link pla:pla -p 8087:80 -p 8448:443"
 
   end
 end
@@ -73,10 +75,12 @@ Vagrant.configure("2") do |config|
     override.vm.network :forwarded_port, host: 8084, guest: 8084
     override.vm.network :forwarded_port, host: 8085, guest: 8085
     override.vm.network :forwarded_port, host: 8086, guest: 8086
+    override.vm.network :forwarded_port, host: 8087, guest: 8087
     override.vm.network :forwarded_port, host: 8444, guest: 8444
     override.vm.network :forwarded_port, host: 8445, guest: 8445
     override.vm.network :forwarded_port, host: 8446, guest: 8446
     override.vm.network :forwarded_port, host: 8447, guest: 8447
+    override.vm.network :forwarded_port, host: 8448, guest: 8448
     override.vm.network :forwarded_port, host: 9000, guest: 9000
   end
 
