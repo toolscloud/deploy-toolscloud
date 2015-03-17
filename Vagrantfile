@@ -40,7 +40,7 @@ def docker_provision(config)
       args: "-p 8084:8081 --link ldap:ldap --volumes-from data -v /applications/opt/sonatype-work:/opt/sonatype-work"
 
     d.run "jenkins", image: "toolscloud/jenkins",
-      args: "-p 8083:8080 -p 5000:5000 --link ldap:ldap --link postgresql:postgresql \
+      args: "-p 8083:8080 -p 50000:50000 --link ldap:ldap --link postgresql:postgresql \
 --link gitblit:git --link nexus:nexus -e 'JENKINS_OPTS=--prefix=/jenkins' \
 --volumes-from data -u root -v /applications/jenkins_home:/var/jenkins_home"
 
