@@ -40,8 +40,8 @@ def docker_provision(config)
       args: "-p 8084:8081 --link ldap:ldap --volumes-from data -v /applications/opt/sonatype-work:/opt/sonatype-work"
 
     d.run "jenkins", image: "toolscloud/jenkins",
-      args: "-p 8083:8080 -p 5000:5000 --link ldap:ldap --link postgresql:postgresql \
---link gitblit:git --link nexus:nexus -e 'JENKINS_OPTS=--prefix=/jenkins' \
+      args: "-p 8083:8080 -p 50000:50000 --link ldap:ldap --link postgresql:postgresql \
+--link gitblit:git --link nexus:nexus \
 --volumes-from data -u root -v /applications/jenkins_home:/var/jenkins_home"
 
     d.run "sonar", image: "toolscloud/sonar-server",
@@ -64,24 +64,14 @@ Vagrant.configure("2") do |config|
     config.vm.box = "trusty-server-cloudimg-amd64-vagrant-disk1"
     config.vm.box_url = "https://cloud-images.ubuntu.com/vagrant/trusty/current/trusty-server-cloudimg-amd64-vagrant-disk1.box"
     config.ssh.shell = "bash -c 'BASH_ENV=/etc/profile exec bash'"
+    config.vm.define "localvm"
 
   config.vm.provider "virtualbox" do |vb, override|
+    vb.name = "localvm"
     vb.memory = 3072
     vb.cpus = 2
-    override.vm.network :forwarded_port, host: 50000, guest: 50000
-    override.vm.network :forwarded_port, host: 8081, guest: 8081
-    override.vm.network :forwarded_port, host: 8082, guest: 8082
-    override.vm.network :forwarded_port, host: 8083, guest: 8083
-    override.vm.network :forwarded_port, host: 8084, guest: 8084
-    override.vm.network :forwarded_port, host: 8085, guest: 8085
-    override.vm.network :forwarded_port, host: 8086, guest: 8086
-    override.vm.network :forwarded_port, host: 8087, guest: 8087
-    override.vm.network :forwarded_port, host: 8444, guest: 8444
-    override.vm.network :forwarded_port, host: 8445, guest: 8445
-    override.vm.network :forwarded_port, host: 8446, guest: 8446
-    override.vm.network :forwarded_port, host: 8447, guest: 8447
     override.vm.network :forwarded_port, host: 8448, guest: 8448
-    override.vm.network :forwarded_port, host: 9000, guest: 9000
+    override.vm.network :forwarded_port, host: 8087, guest: 8087
   end
 
   config.vm.provider "aws" do |aws, override|
