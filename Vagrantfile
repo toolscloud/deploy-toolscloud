@@ -41,8 +41,8 @@ def docker_provision(config)
 
     d.run "jenkins", image: "toolscloud/jenkins",
       args: "-p 8083:8080 -p 50000:50000 --link ldap:ldap --link postgresql:postgresql \
---link gitblit:git --link nexus:nexus \
---volumes-from data -u root -v /applications/jenkins_home:/var/jenkins_home"
+      --link gitblit:git --link nexus:nexus \
+      --volumes-from data -u root -v /applications/jenkins_home:/var/jenkins_home"
 
     d.run "sonar", image: "toolscloud/sonar-server",
       args: "-p 9000:9000 --link postgresql:db --link ldap:ldap --link gitblit:git -e 'DBMS=postgresql'"
