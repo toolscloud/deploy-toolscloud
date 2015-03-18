@@ -21,11 +21,11 @@ def docker_provision(config)
 
     d.run "postgresql", image: "toolscloud/postgresql",
       args: "--volumes-from data \
--v /applications/var/lib/postgresql:/var/lib/postgresql \
--v /applications/run/postgresql:/run/postgresql"
+-v /applications/postgresql/var/lib/postgresql:/var/lib/postgresql \
+-v /applications/postgresql/run/postgresql:/run/postgresql"
 
     d.run "ldap", image: "toolscloud/ldap",
-      args: "-p 389:389 --volumes-from data -v /applications/usr/local/etc/openldap:/usr/local/etc/openldap"
+      args: "-p 389:389 --volumes-from data -v /applications/ldap/usr/local/etc/openldap:/usr/local/etc/openldap"
 
     d.run "gitblit", image: "toolscloud/gitblit",
       args: "-p 8086:80 -p 8447:443 -p 9418:9418 -p 29418:29418 --link ldap:ldap"
@@ -34,10 +34,10 @@ def docker_provision(config)
       args: "--link postgresql:postgresql --link ldap:ldap --link gitblit:git -p 8081:80 -p 8444:443 \
 -e 'DB_NAME=redmine_production' -e 'DB_USER=redmine' -e 'DB_PASS=!AdewhmOP@12' \
 --volumes-from data -v /applications/redmine/data:/home/redmine/data \
--v /applications/var/log/redmine:/var/log/redmine"
+-v /applications/redmine/var/log/redmine:/var/log/redmine"
 
     d.run "nexus", image: "toolscloud/sonatype-nexus",
-      args: "-p 8084:8081 --link ldap:ldap --volumes-from data -v /applications/opt/sonatype-work:/opt/sonatype-work"
+      args: "-p 8084:8081 --link ldap:ldap --volumes-from data -v /applications/nexus/opt/sonatype-work:/opt/sonatype-work"
 
     d.run "jenkins", image: "toolscloud/jenkins",
       args: "-p 8083:8080 -p 50000:50000 --link ldap:ldap --link postgresql:postgresql \
