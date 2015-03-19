@@ -3,13 +3,13 @@
 This project runs Docker containers in a VM using Vagrant. To run a local VM:
 
 ```{bash}
-vagrant up localvm
+vagrant up 
 ```
 
 To run an AWS instance:
 
 ```{bash}
-vagrant up --provider=aws awsvm
+vagrant up --provider=aws 
 ```
 
 In order to be able to run the AWS instance you must create a **vagrant_config.yml** file with the following parameters:
