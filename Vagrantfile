@@ -6,7 +6,6 @@ def docker_provision(config)
   config.vm.provision "file", source: "~/.dockercfg", destination: "~/.dockercfg"
   config.vm.provision "shell", inline: "sudo cp /home/vagrant/.dockercfg /root/.dockercfg"
   config.vm.provision "docker" do |d|
-    d.pull_images "cpuguy83/docker-grand-ambassador:latest"
     d.pull_images "toolscloud/data:latest"
     d.pull_images "toolscloud/postgresql:latest"
     d.pull_images "toolscloud/redmine:latest"
@@ -18,46 +17,43 @@ def docker_provision(config)
     d.pull_images "toolscloud/gitblit:latest"
     d.pull_images "toolscloud/manager:latest"
 
-    d.run "ambassador", image: "cpuguy83/docker-grand-ambassador -name=[ldap, postgresql, gitblit, nexus, jenkins, sonar, redmine, pla] -wait=true",
-    args: "-v /var/run/docker.sock:/var/run/docker.sock"
-
     d.run "data", image: "toolscloud/data"
 
     d.run "postgresql", image: "toolscloud/postgresql",
-    args: "--volumes-from data \
+      args: "--volumes-from data \
 -v /applications/postgresql/var/lib/postgresql:/var/lib/postgresql \
 -v /applications/postgresql/run/postgresql:/run/postgresql"
 
     d.run "ldap", image: "toolscloud/ldap",
-    args: "--volumes-from data -v /applications/ldap/usr/local/etc/openldap:/usr/local/etc/openldap"
-
-    d.run "pla", image: "toolscloud/phpldapadmin",
-    args: "--link ambassador:ldap"
+      args: "--volumes-from data -v /applications/ldap/usr/local/etc/openldap:/usr/local/etc/openldap"
 
     d.run "gitblit", image: "toolscloud/gitblit",
-    args: "-p 8447:443 -p 9418:9418 -p 29418:29418 --link ambassador:ldap"
-
-    d.run "nexus", image: "toolscloud/sonatype-nexus",
-    args: "-p 8080:8081 --link ambassador:ldap --volumes-from data -v /applications/nexus/opt/sonatype-work:/opt/sonatype-work"
+      args: "-p 8447:443 -p 9418:9418 -p 29418:29418 --link ldap:ldap"
 
     d.run "redmine", image: "toolscloud/redmine",
-    args: "--link postgresql:postgresql --link ambassador:ldap --link ambassador:git \
+      args: "--link postgresql:postgresql --link ldap:ldap --link gitblit:git \
 -e 'DB_NAME=redmine_production' -e 'DB_USER=redmine' -e 'DB_PASS=!AdewhmOP@12' \
 --volumes-from data -v /applications/redmine/data:/home/redmine/data \
 -v /applications/redmine/var/log/redmine:/var/log/redmine"
 
+    d.run "nexus", image: "toolscloud/sonatype-nexus",
+      args: "-p 8080:8081 --link ldap:ldap --volumes-from data -v /applications/nexus/opt/sonatype-work:/opt/sonatype-work"
+
     d.run "jenkins", image: "toolscloud/jenkins",
-    args: "-p 50000:50000 --link ambassador:ldap --link ambassador:postgresql \
---link ambassador:git --link ambassador:nexus \
---volumes-from data -u root -v /applications/jenkins_home:/var/jenkins_home"
+      args: "-p 50000:50000 --link ldap:ldap --link postgresql:postgresql \
+      --link gitblit:git --link nexus:nexus \
+      --volumes-from data -u root -v /applications/jenkins_home:/var/jenkins_home"
 
     d.run "sonar", image: "toolscloud/sonar-server",
-    args: "--link postgresql:db --link ambassador:ldap --link ambassador:git -e 'DBMS=postgresql'"
+      args: "--link postgresql:db --link ldap:ldap --link gitblit:git -e 'DBMS=postgresql'"
+
+    d.run "pla", image: "toolscloud/phpldapadmin",
+      args: "--link ldap:ldap"
 
     d.run "manager", image: "toolscloud/manager",
-    args: "--link ambassador:postgresql --link ambassador:ldap --link ambassador:jenkins \
---link ambassador:redmine --link ambassador:nexus --link ambassador:sonar --link ambassador:git \
---link ambassador:pla -p 8000:80 -p 4443:443"
+      args: "--link postgresql:postgresql --link ldap:ldap --link jenkins:jenkins \
+--link redmine:redmine --link nexus:nexus --link sonar:sonar --link gitblit:git \
+--link pla:pla -p 8000:80 -p 4443:443"
 
   end
 end
@@ -76,7 +72,6 @@ Vagrant.configure("2") do |config|
     vb.cpus = 2
     override.vm.network :forwarded_port, host: 4443, guest: 4443
     override.vm.network :forwarded_port, host: 8000, guest: 8000
-    override.vm.network :forwarded_port, host: 10389, guest: 389
   end
 
   config.vm.provider "aws" do |aws, override|
