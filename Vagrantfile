@@ -6,51 +6,51 @@ def docker_provision(config)
   config.vm.provision "file", source: "~/.dockercfg", destination: "~/.dockercfg"
   config.vm.provision "shell", inline: "sudo cp /home/vagrant/.dockercfg /root/.dockercfg"
   config.vm.provision "docker" do |d|
-    d.pull_images "toolscloud/data:latest"
-    d.pull_images "toolscloud/postgresql:latest"
-    d.pull_images "toolscloud/redmine:latest"
-    d.pull_images "toolscloud/jenkins:latest" 
-    d.pull_images "toolscloud/sonatype-nexus:latest"
-    d.pull_images "toolscloud/sonar-server:latest"
-    d.pull_images "toolscloud/ldap:latest"
-    d.pull_images "toolscloud/phpldapadmin:latest"
-    d.pull_images "toolscloud/gitblit:latest"
-    d.pull_images "toolscloud/manager:latest"
+    d.pull_images "toolscloud/data:1.0"
+    d.pull_images "toolscloud/postgresql:1.0"
+    d.pull_images "toolscloud/redmine:1.0"
+    d.pull_images "toolscloud/jenkins:1.0" 
+    d.pull_images "toolscloud/sonatype-nexus:1.0"
+    d.pull_images "toolscloud/sonar-server:1.0"
+    d.pull_images "toolscloud/ldap:1.0"
+    d.pull_images "toolscloud/phpldapadmin:1.0"
+    d.pull_images "toolscloud/gitblit:1.0"
+    d.pull_images "toolscloud/manager:1.0"
 
-    d.run "data", image: "toolscloud/data"
+    d.run "data", image: "toolscloud/data:1.0"
 
-    d.run "postgresql", image: "toolscloud/postgresql",
+    d.run "postgresql", image: "toolscloud/postgresql:1.0",
       args: "--volumes-from data \
 -v /applications/postgresql/var/lib/postgresql:/var/lib/postgresql \
 -v /applications/postgresql/run/postgresql:/run/postgresql"
 
-    d.run "ldap", image: "toolscloud/ldap",
+    d.run "ldap", image: "toolscloud/ldap:1.0",
       args: "--volumes-from data -v /applications/ldap/usr/local/etc/openldap:/usr/local/etc/openldap"
 
-    d.run "gitblit", image: "toolscloud/gitblit",
+    d.run "gitblit", image: "toolscloud/gitblit:1.0",
       args: "-p 8447:443 -p 9418:9418 -p 29418:29418 --link ldap:ldap"
 
-    d.run "redmine", image: "toolscloud/redmine",
+    d.run "redmine", image: "toolscloud/redmine:1.0",
       args: "--link postgresql:postgresql --link ldap:ldap --link gitblit:git \
 -e 'DB_NAME=redmine_production' -e 'DB_USER=redmine' -e 'DB_PASS=!AdewhmOP@12' \
 --volumes-from data -v /applications/redmine/data:/home/redmine/data \
 -v /applications/redmine/var/log/redmine:/var/log/redmine"
 
-    d.run "nexus", image: "toolscloud/sonatype-nexus",
+    d.run "nexus", image: "toolscloud/sonatype-nexus:1.0",
       args: "-p 8080:8081 --link ldap:ldap --volumes-from data -v /applications/nexus/opt/sonatype-work:/opt/sonatype-work"
 
-    d.run "jenkins", image: "toolscloud/jenkins",
+    d.run "jenkins", image: "toolscloud/jenkins:1.0",
       args: "-p 50000:50000 --link ldap:ldap --link postgresql:postgresql \
-      --link gitblit:git --link nexus:nexus \
-      --volumes-from data -u root -v /applications/jenkins_home:/var/jenkins_home"
+--link gitblit:git --link nexus:nexus \
+--volumes-from data -u root -v /applications/jenkins_home:/var/jenkins_home"
 
-    d.run "sonar", image: "toolscloud/sonar-server",
+    d.run "sonar", image: "toolscloud/sonar-server:1.0",
       args: "--link postgresql:db --link ldap:ldap --link gitblit:git -e 'DBMS=postgresql'"
 
-    d.run "pla", image: "toolscloud/phpldapadmin",
+    d.run "pla", image: "toolscloud/phpldapadmin:1.0",
       args: "--link ldap:ldap"
 
-    d.run "manager", image: "toolscloud/manager",
+    d.run "manager", image: "toolscloud/manager:1.0",
       args: "--link postgresql:postgresql --link ldap:ldap --link jenkins:jenkins \
 --link redmine:redmine --link nexus:nexus --link sonar:sonar --link gitblit:git \
 --link pla:pla -p 8000:80 -p 4443:443"
@@ -60,11 +60,11 @@ end
 
 Vagrant.configure("2") do |config|
 
-    config.vm.hostname = "basemachine-tc"
-    config.vm.box = "trusty-server-cloudimg-amd64-vagrant-disk1"
-    config.vm.box_url = "https://cloud-images.ubuntu.com/vagrant/trusty/current/trusty-server-cloudimg-amd64-vagrant-disk1.box"
-    config.ssh.shell = "bash -c 'BASH_ENV=/etc/profile exec bash'"
-    config.vm.define "localvm"
+  config.vm.hostname = "basemachine-tc"
+  config.vm.box = "trusty-server-cloudimg-amd64-vagrant-disk1"
+  config.vm.box_url = "https://cloud-images.ubuntu.com/vagrant/trusty/current/trusty-server-cloudimg-amd64-vagrant-disk1.box"
+  config.ssh.shell = "bash -c 'BASH_ENV=/etc/profile exec bash'"
+  config.vm.define "localvm"
 
   config.vm.provider "virtualbox" do |vb, override|
     vb.name = "localvm"
