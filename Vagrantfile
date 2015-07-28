@@ -18,7 +18,9 @@ def docker_provision(config)
     d.pull_images "toolscloud/manager:latest"
     d.pull_images "cpuguy83/docker-grand-ambassador:latest"
 
-    d.run "ldap_ambassador", image: "cpuguy83/docker-grand-ambassador:latest -name ldap -sock /docker.sock -wait=true -log-level=\"debug\"",
+    d.run "ambassador", image: "cpuguy83/docker-grand-ambassador:latest \
+-name ldap -name gitblit -name nexus -name jenkins -name redmine \
+-sock /docker.sock -wait=true -log-level=\"debug\"",
     args: "-v /var/run/docker.sock:/docker.sock"
 
     d.run "data", image: "toolscloud/data:latest"
@@ -31,32 +33,32 @@ def docker_provision(config)
 -v /applications/postgresql/var/lib/postgresql:/var/lib/postgresql \
 -v /applications/postgresql/run/postgresql:/run/postgresql"
 
+    d.run "pla", image: "toolscloud/phpldapadmin:latest",
+      args: "--link ambassador:ldap"
+
     d.run "gitblit", image: "toolscloud/gitblit:latest",
-      args: "-p 8447:443 -p 9418:9418 -p 29418:29418 --link ldap_ambassador:ldap"
+      args: "-p 8447:443 -p 9418:9418 -p 29418:29418 --link ambassador:ldap"
+
+    d.run "nexus", image: "toolscloud/sonatype-nexus:latest",
+      args: "-p 8080:8081 --link ambassador:ldap --volumes-from data -v /applications/nexus/opt/sonatype-work:/opt/sonatype-work"
 
     d.run "redmine", image: "toolscloud/redmine:latest",
-      args: "--link postgresql:postgresql --link ldap_ambassador:ldap --link gitblit:git \
--e 'DB_NAME=redmine_production' -e 'DB_USER=redmine' -e 'DB_PASS=!AdewhmOP@12' \
+    args: "--link postgresql:postgresql --link ambassador:ldap --link ambassador:git \
+-e 'DB_TYPE=postgres' -e 'DB_NAME=redmine_production' -e 'DB_USER=redmine' -e 'DB_PASS=!AdewhmOP@12' \
 --volumes-from data -v /applications/redmine/data:/home/redmine/data \
 -v /applications/redmine/var/log/redmine:/var/log/redmine"
 
-    d.run "nexus", image: "toolscloud/sonatype-nexus:latest",
-      args: "-p 8080:8081 --link ldap_ambassador:ldap --volumes-from data -v /applications/nexus/opt/sonatype-work:/opt/sonatype-work"
-
     d.run "jenkins", image: "toolscloud/jenkins:latest",
-      args: "-p 50000:50000 --link ldap_ambassador:ldap --link postgresql:postgresql \
---link gitblit:git --link nexus:nexus \
+      args: "-p 50000:50000 --link ambassador:ldap --link postgresql:postgresql \
+--link ambassador:git --link ambassador:nexus \
 --volumes-from data -u root -v /applications/jenkins_home:/var/jenkins_home"
 
     d.run "sonar", image: "toolscloud/sonar-server:latest",
-      args: "--link postgresql:db --link ldap_ambassador:ldap --link gitblit:git -e 'DBMS=postgresql'"
-
-    d.run "pla", image: "toolscloud/phpldapadmin:latest",
-    args: "--link ldap_ambassador:ldap"
+    args: "--link postgresql:db --link ambassador:ldap --link ambassador:git -e 'DBMS=postgresql'"
 
     d.run "manager", image: "toolscloud/manager:latest",
-      args: "--link postgresql:postgresql --link ldap_ambassador:ldap --link jenkins:jenkins \
---link redmine:redmine --link nexus:nexus --link sonar:sonar --link gitblit:git \
+      args: "--link postgresql:postgresql --link ambassador:ldap --link ambassador:jenkins \
+--link ambassador:redmine --link ambassador:nexus --link sonar:sonar --link ambassador:git \
 --link pla:pla -p 8000:80 -p 4443:443"
 
   end
