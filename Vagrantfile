@@ -19,45 +19,45 @@ def docker_provision(config)
     d.pull_images "cpuguy83/docker-grand-ambassador:latest"
 
     d.run "ambassador", image: "cpuguy83/docker-grand-ambassador:latest \
--name ldap -name gitblit -name nexus -name jenkins -name redmine \
+-name ldap -name gitblit -name nexus -name jenkins -name redmine -name postgresql \
 -sock /docker.sock -wait=true -log-level=\"debug\"",
     args: "-v /var/run/docker.sock:/docker.sock"
 
     d.run "data", image: "toolscloud/data:latest"
 
     d.run "ldap", image: "toolscloud/ldap:latest",
-      args: "--volumes-from data -v /applications/ldap/usr/local/etc/openldap:/usr/local/etc/openldap"
+    args: "--volumes-from data -v /applications/ldap/usr/local/etc/openldap:/usr/local/etc/openldap"
 
     d.run "postgresql", image: "toolscloud/postgresql:latest",
-      args: "--volumes-from data \
+    args: "--volumes-from data \
 -v /applications/postgresql/var/lib/postgresql:/var/lib/postgresql \
 -v /applications/postgresql/run/postgresql:/run/postgresql"
 
     d.run "pla", image: "toolscloud/phpldapadmin:latest",
-      args: "--link ambassador:ldap"
+    args: "--link ambassador:ldap"
 
     d.run "gitblit", image: "toolscloud/gitblit:latest",
-      args: "-p 8447:443 -p 9418:9418 -p 29418:29418 --link ambassador:ldap"
+    args: "-p 8447:443 -p 9418:9418 -p 29418:29418 --link ambassador:ldap"
 
     d.run "nexus", image: "toolscloud/sonatype-nexus:latest",
-      args: "-p 8080:8081 --link ambassador:ldap --volumes-from data -v /applications/nexus/opt/sonatype-work:/opt/sonatype-work"
+    args: "-p 8080:8081 --link ambassador:ldap --volumes-from data -v /applications/nexus/opt/sonatype-work:/opt/sonatype-work"
 
     d.run "redmine", image: "toolscloud/redmine:latest",
-    args: "--link postgresql:postgresql --link ambassador:ldap --link ambassador:git \
+    args: "-p 8081:80 -p 8444:443 --link ambassador:postgresql --link ambassador:ldap --link ambassador:git \
 -e 'DB_TYPE=postgres' -e 'DB_NAME=redmine_production' -e 'DB_USER=redmine' -e 'DB_PASS=!AdewhmOP@12' \
 --volumes-from data -v /applications/redmine/data:/home/redmine/data \
 -v /applications/redmine/var/log/redmine:/var/log/redmine"
 
     d.run "jenkins", image: "toolscloud/jenkins:latest",
-      args: "-p 50000:50000 --link ambassador:ldap --link postgresql:postgresql \
+    args: "-p 50000:50000 --link ambassador:ldap --link ambassador:postgresql \
 --link ambassador:git --link ambassador:nexus \
 --volumes-from data -u root -v /applications/jenkins_home:/var/jenkins_home"
 
     d.run "sonar", image: "toolscloud/sonar-server:latest",
-    args: "--link postgresql:db --link ambassador:ldap --link ambassador:git -e 'DBMS=postgresql'"
+    args: "--link ambassador:postgresql --link ambassador:ldap --link ambassador:git -e 'DBMS=postgresql'"
 
     d.run "manager", image: "toolscloud/manager:latest",
-      args: "--link postgresql:postgresql --link ambassador:ldap --link ambassador:jenkins \
+    args: "--link ambassador:postgresql --link ambassador:ldap --link ambassador:jenkins \
 --link ambassador:redmine --link ambassador:nexus --link sonar:sonar --link ambassador:git \
 --link pla:pla -p 8000:80 -p 4443:443"
 
@@ -78,6 +78,8 @@ Vagrant.configure("2") do |config|
     vb.cpus = 2
     override.vm.network :forwarded_port, host: 4443, guest: 4443
     override.vm.network :forwarded_port, host: 8000, guest: 8000
+    override.vm.network :forwarded_port, host: 8081, guest: 8081
+    override.vm.network :forwarded_port, host: 8444, guest: 8444
   end
 
   config.vm.provider "aws" do |aws, override|
