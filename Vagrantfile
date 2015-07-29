@@ -20,7 +20,7 @@ def docker_provision(config)
 
     d.run "ambassador", image: "cpuguy83/docker-grand-ambassador:latest \
 -name ldap -name gitblit -name nexus -name jenkins -name redmine -name postgresql \
--sock /docker.sock -wait=true -log-level=\"debug\"",
+-name pla -name sonar -sock /docker.sock -wait=true -log-level=\"debug\"",
     args: "-v /var/run/docker.sock:/docker.sock"
 
     d.run "data", image: "toolscloud/data:latest"
@@ -58,8 +58,8 @@ def docker_provision(config)
 
     d.run "manager", image: "toolscloud/manager:latest",
     args: "--link ambassador:postgresql --link ambassador:ldap --link ambassador:jenkins \
---link ambassador:redmine --link ambassador:nexus --link sonar:sonar --link ambassador:git \
---link pla:pla -p 8000:80 -p 4443:443"
+--link ambassador:redmine --link ambassador:nexus --link ambassador:sonar --link ambassador:git \
+--link ambassador:pla -p 8000:80 -p 4443:443"
 
   end
 end
