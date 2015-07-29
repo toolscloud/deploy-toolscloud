@@ -37,13 +37,13 @@ def docker_provision(config)
     args: "--link ambassador:ldap"
 
     d.run "gitblit", image: "toolscloud/gitblit:latest",
-    args: "-p 8447:443 -p 9418:9418 -p 29418:29418 --link ambassador:ldap"
+    args: "-p 9418:9418 -p 29418:29418 --link ambassador:ldap"
 
     d.run "nexus", image: "toolscloud/sonatype-nexus:latest",
     args: "-p 8080:8081 --link ambassador:ldap --volumes-from data -v /applications/nexus/opt/sonatype-work:/opt/sonatype-work"
 
     d.run "redmine", image: "toolscloud/redmine:latest",
-    args: "-p 8081:80 -p 8444:443 --link ambassador:postgresql --link ambassador:ldap --link ambassador:git \
+    args: "-p 8081:8081 -p 8444:8444 --link ambassador:postgresql --link ambassador:ldap --link ambassador:git \
 -e 'DB_TYPE=postgres' -e 'DB_NAME=redmine_production' -e 'DB_USER=redmine' -e 'DB_PASS=!AdewhmOP@12' \
 --volumes-from data -v /applications/redmine/data:/home/redmine/data \
 -v /applications/redmine/var/log/redmine:/var/log/redmine"
@@ -65,7 +65,6 @@ def docker_provision(config)
 end
 
 Vagrant.configure("2") do |config|
-
   config.vm.hostname = "basemachine-tc"
   config.vm.box = "trusty-server-cloudimg-amd64-vagrant-disk1"
   config.vm.box_url = "https://cloud-images.ubuntu.com/vagrant/trusty/current/trusty-server-cloudimg-amd64-vagrant-disk1.box"
