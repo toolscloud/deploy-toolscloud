@@ -7,12 +7,12 @@ def docker_provision(config)
   config.vm.provision "shell", inline: "sudo cp /home/vagrant/.dockercfg /root/.dockercfg"
   config.vm.provision "docker" do |d|
     d.pull_images "toolscloud/data:1.0"
-    d.pull_images "toolscloud/postgresql:1.0"
+    d.pull_images "toolscloud/postgresql:2.0"
     d.pull_images "toolscloud/redmine:2.0"
     d.pull_images "toolscloud/jenkins:2.0" 
     d.pull_images "toolscloud/sonatype-nexus:1.0"
     d.pull_images "toolscloud/sonar-server:2.0"
-    d.pull_images "toolscloud/ldap:1.0"
+    d.pull_images "toolscloud/ldap:2.0"
     d.pull_images "toolscloud/phpldapadmin:1.0"
     d.pull_images "toolscloud/gitblit:2.0"
     d.pull_images "toolscloud/manager:2.0"
@@ -25,10 +25,10 @@ def docker_provision(config)
 
     d.run "data", image: "toolscloud/data:1.0"
 
-    d.run "ldap", image: "toolscloud/ldap:1.0",
-    args: "--volumes-from data -v /applications/ldap/usr/local/etc/openldap:/usr/local/etc/openldap"
+    d.run "ldap", image: "toolscloud/ldap:2.0",
+    args: "--volumes-from data -v /applications/ldap/usr/local/etc/openldap:/usr/local/etc/openldap "
 
-    d.run "postgresql", image: "toolscloud/postgresql:1.0",
+    d.run "postgresql", image: "toolscloud/postgresql:2.0",
     args: "--volumes-from data \
 -v /applications/postgresql/var/lib/postgresql:/var/lib/postgresql \
 -v /applications/postgresql/run/postgresql:/run/postgresql"
