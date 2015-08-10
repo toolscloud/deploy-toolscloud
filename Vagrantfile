@@ -25,9 +25,9 @@ def docker_provision(config)
 -name pla -name sonar -sock /docker.sock -wait=true -log-level=\"debug\"",
     args: "-v /var/run/docker.sock:/docker.sock"
 
-    d.run "data", image: "toolscloud/data:dev"
+    d.run "data", image: "toolscloud/data:1.0"
 
-    d.run "ldap", image: "toolscloud/ldap:dev",
+    d.run "ldap", image: "toolscloud/ldap:2.0",
     args: "--volumes-from data -v /applications/ldap/usr/local/etc/openldap:/usr/local/etc/openldap "
 
     d.run "postgresql", image: "toolscloud/postgresql:2.0",
@@ -41,7 +41,7 @@ def docker_provision(config)
     d.run "gitblit", image: "toolscloud/gitblit:2.0",
     args: "-p 9418:9418 -p 29418:29418 --link ambassador:ldap"
 
-    d.run "nexus", image: "toolscloud/sonatype-nexus:dev",
+    d.run "nexus", image: "toolscloud/sonatype-nexus:1.0",
     args: "-p 8081:8081 --link ambassador:ldap --volumes-from data -v /applications/nexus/opt/sonatype-work:/opt/sonatype-work"
 
     d.run "redmine", image: "toolscloud/redmine:2.0",
