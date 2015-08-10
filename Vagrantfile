@@ -3,10 +3,11 @@ require 'yaml'
 CONF = YAML::load_file("vagrant_config.yml")
 
 def docker_provision(config)
-  config.vm.provision "file", source: "~/.dockercfg", destination: "~/.dockercfg"
-  config.vm.provision "shell", inline: "sudo mkdir -p /home/vagrant/.docker /root/.docker; sudo apt-get update"
-  config.vm.provision "shell", inline: "sudo cp /home/vagrant/.dockercfg /home/vagrant/.docker/config.json"
-  config.vm.provision "shell", inline: "sudo cp /home/vagrant/.dockercfg /root/.docker/config.json"
+  config.vm.provision "shell", inline: "sudo mkdir -p /home/vagrant/.docker /root/.docker; chown -R vagrant:vagrant /home/vagrant/.docker; sudo apt-get update"
+  config.vm.provision "file", source: "~/.docker/config.json", destination: "~/.docker/config.json"
+  config.vm.provision "shell", inline: "sudo chmod +rw /home/vagrant/.docker/config.json"
+  config.vm.provision "shell", inline: "sudo cp /home/vagrant/.docker/config.json /root/.docker/config.json"
+  #config.vm.provision "file", source: "~/.docker/config.json", destination: "/root/.docker/config.json"
   config.vm.provision "docker" do |d|
     d.pull_images "toolscloud/data:dev"
     #d.pull_images "toolscloud/postgresql:2.0"
@@ -42,7 +43,7 @@ def docker_provision(config)
 #    args: "-p 9418:9418 -p 29418:29418 --link ambassador:ldap"
 
     d.run "nexus", image: "toolscloud/sonatype-nexus:dev",
-    args: "-p 8080:8081 --link ambassador:ldap --volumes-from data -v /applications/nexus/opt/sonatype-work:/opt/sonatype-work"
+    args: "-p 8081:8081 --link ambassador:ldap --volumes-from data -v /applications/nexus/opt/sonatype-work:/opt/sonatype-work"
 
     #d.run "redmine", image: "toolscloud/redmine:2.0",
     #args: "-p 8081:8081 -p 8444:8444 --link ambassador:postgresql --link ambassador:ldap --link ambassador:git \
@@ -77,6 +78,8 @@ Vagrant.configure("2") do |config|
     vb.name = "localvm"
     vb.memory = 3072
     vb.cpus = 2
+
+    override.vm.network "private_network", ip: "192.168.56.4"
     override.vm.network :forwarded_port, host: 4443, guest: 4443
     override.vm.network :forwarded_port, host: 8000, guest: 8000
     override.vm.network :forwarded_port, host: 8081, guest: 8081
