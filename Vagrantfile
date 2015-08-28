@@ -11,7 +11,7 @@ def docker_provision(config)
     d.pull_images "toolscloud/data:1.0"
     d.pull_images "toolscloud/postgresql:2.0"
     d.pull_images "toolscloud/redmine:2.0"
-    d.pull_images "toolscloud/jenkins:2.0" 
+    d.pull_images "toolscloud/jenkins:2.0"
     d.pull_images "toolscloud/sonatype-nexus:1.0"
     d.pull_images "toolscloud/sonar-server:2.0"
     d.pull_images "toolscloud/ldap:2.0"
@@ -42,7 +42,7 @@ def docker_provision(config)
     args: "-p 9418:9418 -p 29418:29418 --link ambassador:ldap"
 
     d.run "nexus", image: "toolscloud/sonatype-nexus:1.0",
-    args: "-p 8081:8081 --link ambassador:ldap --volumes-from data -v /applications/nexus/opt/sonatype-work:/opt/sonatype-work"
+    args: "-p 8080:8081 --link ambassador:ldap --volumes-from data -v /applications/nexus/opt/sonatype-work:/opt/sonatype-work"
 
     d.run "redmine", image: "toolscloud/redmine:2.0",
     args: "-p 8081:8081 -p 8444:8444 --link ambassador:postgresql --link ambassador:ldap --link ambassador:git \
