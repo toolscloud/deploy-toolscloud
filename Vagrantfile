@@ -7,58 +7,73 @@ def docker_provision(config)
   config.vm.provision "file", source: "~/.docker/config.json", destination: "~/.docker/config.json"
   config.vm.provision "shell", inline: "sudo chmod +rw /home/vagrant/.docker/config.json"
   config.vm.provision "shell", inline: "sudo cp /home/vagrant/.docker/config.json /root/.docker/config.json"
-  config.vm.provision "docker" do |d|
-    d.pull_images "toolscloud/data:1.0"
-    d.pull_images "toolscloud/postgresql:dev"
-    d.pull_images "toolscloud/redmine:dev"
-    d.pull_images "toolscloud/jenkins:dev"
-    d.pull_images "toolscloud/sonatype-nexus:dev"
-    d.pull_images "toolscloud/sonar-server:dev"
-    d.pull_images "toolscloud/ldap:dev"
-    d.pull_images "toolscloud/phpldapadmin:dev"
-    d.pull_images "toolscloud/gitblit:dev"
-    d.pull_images "toolscloud/manager:2.0"
-    d.pull_images "cpuguy83/docker-grand-ambassador:latest"
 
-    d.run "ambassador", image: "cpuguy83/docker-grand-ambassador:latest \
+  #image tags used at pull and run steps;
+  data_tag = "1.0"
+  postgresql_tag = "dev"
+  redmine_tag = "dev"
+  jenkins_tag = "dev"
+  nexus_tag = "dev"
+  sonar_tag = "dev"
+  ldap_tag = "dev"
+  phpldapadmin_tag = "dev"
+  gitblit_tag = "dev"
+  manager_tag = "dev"
+  ambassador_tag = "latest"
+
+
+  config.vm.provision "docker" do |d|
+    d.pull_images "toolscloud/data:#{data_tag}"
+    d.pull_images "toolscloud/postgresql:#{postgresql_tag}"
+    d.pull_images "toolscloud/redmine:#{redmine_tag}"
+    d.pull_images "toolscloud/jenkins:#{jenkins_tag}"
+    d.pull_images "toolscloud/sonatype-nexus:#{nexus_tag}"
+    d.pull_images "toolscloud/sonar-server:#{sonar_tag}"
+    d.pull_images "toolscloud/ldap:#{ldap_tag}"
+    d.pull_images "toolscloud/phpldapadmin:#{phpldapadmin_tag}"
+    d.pull_images "toolscloud/gitblit:#{gitblit_tag}"
+    d.pull_images "toolscloud/manager:#{manager_tag}"
+    d.pull_images "cpuguy83/docker-grand-ambassador:#{ambassador_tag}"
+
+    d.run "ambassador", image: "cpuguy83/docker-grand-ambassador:#{ambassador_tag} \
 -name ldap -name gitblit -name nexus -name jenkins -name redmine -name postgresql \
 -name pla -name sonar -sock /docker.sock -wait=true -log-level=\"debug\"",
     args: "-v /var/run/docker.sock:/docker.sock"
 
-    d.run "data", image: "toolscloud/data:1.0"
+    d.run "data", image: "toolscloud/data:#{data_tag}"
 
-    d.run "ldap", image: "toolscloud/ldap:dev",
+    d.run "ldap", image: "toolscloud/ldap:#{ldap_tag}",
     args: "--volumes-from data -v /applications/ldap/usr/local/etc/openldap:/usr/local/etc/openldap "
 
-    d.run "postgresql", image: "toolscloud/postgresql:dev",
+    d.run "postgresql", image: "toolscloud/postgresql:#{postgresql_tag}",
     args: "--volumes-from data \
 -v /applications/postgresql/var/lib/postgresql:/var/lib/postgresql \
 -v /applications/postgresql/run/postgresql:/run/postgresql"
 
-    d.run "pla", image: "toolscloud/phpldapadmin:dev",
+    d.run "pla", image: "toolscloud/phpldapadmin:#{phpldapadmin_tag}",
     args: "--link ambassador:ldap"
 
-    d.run "gitblit", image: "toolscloud/gitblit:dev",
+    d.run "gitblit", image: "toolscloud/gitblit:#{gitblit_tag}",
     args: "-p 9418:9418 -p 29418:29418 --link ambassador:ldap"
 
-    d.run "nexus", image: "toolscloud/sonatype-nexus:dev",
+    d.run "nexus", image: "toolscloud/sonatype-nexus:#{nexus_tag}",
     args: "-p 8080:8081 --link ambassador:ldap --volumes-from data -v /applications/nexus/opt/sonatype-work:/opt/sonatype-work"
 
-    d.run "redmine", image: "toolscloud/redmine:dev",
+    d.run "redmine", image: "toolscloud/redmine:#{redmine_tag}",
     args: "-p 8081:8081 -p 8444:8444 --link ambassador:postgresql --link ambassador:ldap --link ambassador:git \
 -e 'DB_TYPE=postgres' -e 'DB_NAME=redmine_production' -e 'DB_USER=redmine' -e 'DB_PASS=!AdewhmOP@12' \
 --volumes-from data -v /applications/redmine/data:/home/redmine/data \
 -v /applications/redmine/var/log/redmine:/var/log/redmine"
 
-    d.run "jenkins", image: "toolscloud/jenkins:dev",
+    d.run "jenkins", image: "toolscloud/jenkins:#{jenkins_tag}",
     args: "-p 50000:50000 --link ambassador:ldap --link ambassador:postgresql \
 --link ambassador:git --link ambassador:nexus \
 --volumes-from data -u root -v /applications/jenkins_home:/var/jenkins_home"
 
-    d.run "sonar", image: "toolscloud/sonar-server:dev",
+    d.run "sonar", image: "toolscloud/sonar-server:#{sonar_tag}",
     args: "--link ambassador:postgresql --link ambassador:ldap --link ambassador:git -e 'DBMS=postgresql'"
 
-    d.run "manager", image: "toolscloud/manager:2.0",
+    d.run "manager", image: "toolscloud/manager:#{manager_tag}",
     args: "--link ambassador:postgresql --link ambassador:ldap --link ambassador:jenkins \
 --link ambassador:redmine --link ambassador:nexus --link ambassador:sonar --link ambassador:git \
 --link ambassador:pla -p 8000:80 -p 4443:443"
@@ -79,8 +94,12 @@ Vagrant.configure("2") do |config|
     vb.cpus = 2
 
     override.vm.network "private_network", ip: "192.168.56.4"
+
+    #manager
     override.vm.network :forwarded_port, host: 4443, guest: 4443
     override.vm.network :forwarded_port, host: 8000, guest: 8000
+
+    #redmine
     override.vm.network :forwarded_port, host: 8081, guest: 8081
     override.vm.network :forwarded_port, host: 8444, guest: 8444
 
