@@ -9,6 +9,5 @@ docker pull toolscloud/redmine:dev
 docker pull toolscloud/phpldapadmin:dev
 docker pull toolscloud/postgresql:dev
 docker pull toolscloud/ldap:dev
-docker pull toolscloud/manager:2.0
 docker pull toolscloud/data:1.0
 docker pull cpuguy83/docker-grand-ambassador:latest
