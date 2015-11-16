@@ -1,6 +1,6 @@
 #!/bin/bash
 
-docker pull toolscloud/manager:dev
+docker pull toolscloud/manager:2.1
 docker pull toolscloud/sonar-server:dev
 docker pull toolscloud/gitblit:dev
 docker pull toolscloud/sonatype-nexus:dev

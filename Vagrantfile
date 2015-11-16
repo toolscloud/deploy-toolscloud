@@ -18,6 +18,7 @@ def docker_provision(config)
   ldap_tag = "dev"
   phpldapadmin_tag = "dev"
   gitblit_tag = "dev"
+  testlink_tag = "dev"
   manager_tag = "dev"
   ambassador_tag = "latest"
 
@@ -32,12 +33,13 @@ def docker_provision(config)
     d.pull_images "toolscloud/ldap:#{ldap_tag}"
     d.pull_images "toolscloud/phpldapadmin:#{phpldapadmin_tag}"
     d.pull_images "toolscloud/gitblit:#{gitblit_tag}"
+    d.pull_images "andretadeu/testlink:#{testlink_tag}"
     d.pull_images "toolscloud/manager:#{manager_tag}"
     d.pull_images "cpuguy83/docker-grand-ambassador:#{ambassador_tag}"
 
     d.run "ambassador", image: "cpuguy83/docker-grand-ambassador:#{ambassador_tag} \
 -name ldap -name gitblit -name nexus -name jenkins -name redmine -name postgresql \
--name pla -name sonar -sock /docker.sock -wait=true -log-level=\"debug\"",
+-name pla -name sonar -name testlink -sock /docker.sock -wait=true -log-level=\"debug\"",
     args: "-v /var/run/docker.sock:/docker.sock"
 
     d.run "data", image: "toolscloud/data:#{data_tag}"
@@ -73,10 +75,13 @@ def docker_provision(config)
     d.run "sonar", image: "toolscloud/sonar-server:#{sonar_tag}",
     args: "--link ambassador:postgresql --link ambassador:ldap --link ambassador:git -e 'DBMS=postgresql'"
 
+    d.run "testlink", image: "andretadeu/testlink:#{testlink_tag}",
+    args: "--link ambassador:postgresql -p 8082:80"
+
     d.run "manager", image: "toolscloud/manager:#{manager_tag}",
     args: "--link ambassador:postgresql --link ambassador:ldap --link ambassador:jenkins \
 --link ambassador:redmine --link ambassador:nexus --link ambassador:sonar --link ambassador:git \
---link ambassador:pla -p 8000:80 -p 4443:443"
+--link ambassador:pla --link ambassador:testlink -p 8000:80 -p 4443:443"
 
   end
 end
@@ -103,6 +108,8 @@ Vagrant.configure("2") do |config|
     override.vm.network :forwarded_port, host: 8081, guest: 8081
     override.vm.network :forwarded_port, host: 8444, guest: 8444
 
+    #testlink
+    override.vm.network :forwarded_port, host: 8082, guest: 8082
   end
 
   config.vm.provider "aws" do |aws, override|
