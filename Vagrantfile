@@ -2,11 +2,20 @@ require 'yaml'
 
 CONF = YAML::load_file("vagrant_config.yml")
 
+$createDockerFolder = <<SCRIPT
+sudo mkdir -p /home/vagrant/.docker /root/.docker
+chown -R vagrant:vagrant /home/vagrant/.docker
+SCRIPT
+
+$handleDockerhubKey = <<SCRIPT
+sudo chmod +rw /home/vagrant/.docker/config.json
+sudo cp /home/vagrant/.docker/config.json /root/.docker/config.json
+SCRIPT
+
 def docker_provision(config)
-  config.vm.provision "shell", inline: "sudo mkdir -p /home/vagrant/.docker /root/.docker; chown -R vagrant:vagrant /home/vagrant/.docker; sudo apt-get update"
+  config.vm.provision "shell", inline: $createDockerFolder
   config.vm.provision "file", source: "~/.docker/config.json", destination: "~/.docker/config.json"
-  config.vm.provision "shell", inline: "sudo chmod +rw /home/vagrant/.docker/config.json"
-  config.vm.provision "shell", inline: "sudo cp /home/vagrant/.docker/config.json /root/.docker/config.json"
+  config.vm.provision "shell", inline: $handleDockerhubKey
 
   #image tags used at pull and run steps;
   data_tag = "1.0"
@@ -21,7 +30,6 @@ def docker_provision(config)
   testlink_tag = "dev"
   manager_tag = "dev"
   ambassador_tag = "latest"
-
 
   config.vm.provision "docker" do |d|
     d.pull_images "toolscloud/data:#{data_tag}"
