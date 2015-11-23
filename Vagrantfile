@@ -32,19 +32,18 @@ def docker_provision(config)
   ambassador_tag = "latest"
 
   config.vm.provision "docker" do |d|
+    d.pull_images "cpuguy83/docker-grand-ambassador:#{ambassador_tag}"
     d.pull_images "toolscloud/data:#{data_tag}"
-    d.pull_images "toolscloud/postgresql:#{postgresql_tag}"
-    d.pull_images "mysql:5.6"
-    d.pull_images "toolscloud/redmine:#{redmine_tag}"
-    d.pull_images "toolscloud/jenkins:#{jenkins_tag}"
-    d.pull_images "toolscloud/sonatype-nexus:#{nexus_tag}"
-    d.pull_images "toolscloud/sonar-server:#{sonar_tag}"
     d.pull_images "toolscloud/ldap:#{ldap_tag}"
+    d.pull_images "toolscloud/postgresql:#{postgresql_tag}"
     d.pull_images "toolscloud/phpldapadmin:#{phpldapadmin_tag}"
     d.pull_images "toolscloud/gitblit:#{gitblit_tag}"
-    d.pull_images "andretadeu/testlink:#{testlink_tag}"
+    d.pull_images "toolscloud/sonatype-nexus:#{nexus_tag}"
+    d.pull_images "toolscloud/redmine:#{redmine_tag}"
+    d.pull_images "toolscloud/jenkins:#{jenkins_tag}"
+    d.pull_images "toolscloud/sonar-server:#{sonar_tag}"
+    d.pull_images "toolscloud/testlink:#{testlink_tag}"
     d.pull_images "toolscloud/manager:#{manager_tag}"
-    d.pull_images "cpuguy83/docker-grand-ambassador:#{ambassador_tag}"
 
     d.run "ambassador", image: "cpuguy83/docker-grand-ambassador:#{ambassador_tag} \
 -name ldap -name gitblit -name nexus -name jenkins -name redmine -name postgresql \
@@ -61,12 +60,6 @@ def docker_provision(config)
     args: "--volumes-from data \
 -v /applications/postgresql/var/lib/postgresql:/var/lib/postgresql \
 -v /applications/postgresql/run/postgresql:/run/postgresql"
-
-    d.run "mysql", image: "mysql:5.6",
-    args: "-e 'MYSQL_ROOT_PASSWORD=1qazxsw2Mysql' -e 'MYSQL_USER=testlink' \
--e 'MYSQL_PASSWORD=T3stL1nk151d345ikr5' -e 'MYSQL_DATABASE=testlink' \
--v /applications/mysql/etc/mysql/conf.d:/etc/mysql/conf.d \
--v /applications/mysql/var/lib/mysql:/var/lib/mysql"
 
     d.run "pla", image: "toolscloud/phpldapadmin:#{phpldapadmin_tag}",
     args: "--link ambassador:ldap"
@@ -91,8 +84,8 @@ def docker_provision(config)
     d.run "sonar", image: "toolscloud/sonar-server:#{sonar_tag}",
     args: "--link ambassador:postgresql --link ambassador:ldap --link ambassador:git -e 'DBMS=postgresql'"
 
-    d.run "testlink", image: "andretadeu/testlink:#{testlink_tag}",
-    args: "--link ambassador:mysql -p 8082:80"
+    d.run "testlink", image: "toolscloud/testlink:#{testlink_tag}",
+    args: "--link ambassador:postgresql -p 8082:80"
 
     d.run "manager", image: "toolscloud/manager:#{manager_tag}",
     args: "--link ambassador:postgresql --link ambassador:ldap --link ambassador:jenkins \
