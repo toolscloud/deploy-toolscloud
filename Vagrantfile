@@ -3,8 +3,8 @@ require 'yaml'
 CONF = YAML::load_file("vagrant_config.yml")
 
 $createDockerFolder = <<SCRIPT
-sudo mkdir -p /home/vagrant/.docker /root/.docker
-chown -R vagrant:vagrant /home/vagrant/.docker
+sudo mkdir -p $HOME/.docker /root/.docker
+chown -R $USER:$USER $HOME/.docker
 SCRIPT
 
 $handleDockerhubKey = <<SCRIPT
@@ -12,10 +12,22 @@ sudo chmod +rw /home/vagrant/.docker/config.json
 sudo cp /home/vagrant/.docker/config.json /root/.docker/config.json
 SCRIPT
 
+$handleAWSDockerhubKey = <<SCRIPT
+sudo chmod +rw /home/ubuntu/.docker/config.json
+sudo cp /home/ubuntu/.docker/config.json /root/.docker/config.json
+SCRIPT
+
 def docker_provision(config)
   config.vm.provision "shell", inline: $createDockerFolder
   config.vm.provision "file", source: "~/.docker/config.json", destination: "~/.docker/config.json"
-  config.vm.provision "shell", inline: $handleDockerhubKey
+
+  provider_is_aws  = (!ARGV.nil? && ARGV.join('').include?('provider=aws'))
+
+  if (provider_is_aws)
+    config.vm.provision "shell", inline: $handleAWSDockerhubKey
+  else
+    config.vm.provision "shell", inline: $handleDockerhubKey
+  end
 
   #image tags used at pull and run steps;
   data_tag = "1.0"
@@ -61,7 +73,7 @@ def docker_provision(config)
 -v /applications/postgresql/var/lib/postgresql:/var/lib/postgresql \
 -v /applications/postgresql/run/postgresql:/run/postgresql"
 
-    d.run "pla", image: "toolscloud/phpldapadmin:#{phpldapadmin_tag}",
+    d.run "pla", image: "andretadeu/phpldapadmin:#{phpldapadmin_tag}",
     args: "--link ambassador:ldap"
 
     d.run "gitblit", image: "toolscloud/gitblit:#{gitblit_tag}",
@@ -88,7 +100,7 @@ def docker_provision(config)
     args: "--link ambassador:postgresql -p 8082:80"
 
     d.run "manager", image: "toolscloud/manager:#{manager_tag}",
-    args: "--link ambassador:postgresql --link ambassador:ldap --link ambassador:jenkins \
+    args: "-v /applications/manager/var/log/apache2:/var/log/apache2 --link ambassador:postgresql --link ambassador:ldap --link ambassador:jenkins \
 --link ambassador:redmine --link ambassador:nexus --link ambassador:sonar --link ambassador:git \
 --link ambassador:pla --link ambassador:testlink -p 8000:80 -p 4443:443"
 
@@ -97,12 +109,12 @@ end
 
 Vagrant.configure("2") do |config|
   config.vm.hostname = "basemachine-tc"
-  config.vm.box = "trusty-server-cloudimg-amd64-vagrant-disk1"
-  config.vm.box_url = "https://cloud-images.ubuntu.com/vagrant/trusty/current/trusty-server-cloudimg-amd64-vagrant-disk1.box"
   config.ssh.shell = "bash -c 'BASH_ENV=/etc/profile exec bash'"
   config.vm.define "localvm"
 
   config.vm.provider "virtualbox" do |vb, override|
+    config.vm.box = "trusty-server-cloudimg-amd64-vagrant-disk1"
+    config.vm.box_url = "https://cloud-images.ubuntu.com/vagrant/trusty/current/trusty-server-cloudimg-amd64-vagrant-disk1.box"
     vb.name = "localvm"
     vb.memory = 3072
     vb.cpus = 2
@@ -129,11 +141,17 @@ Vagrant.configure("2") do |config|
     aws.secret_access_key = CONF["secret_access_key"]
     aws.keypair_name = CONF["aws_keypair_name"]
     aws.security_groups = CONF["aws_security_groups"]
-    aws.ami = "ami-adbeb5e8"
+    aws.ami = "ami-df6a8b9b"
     aws.instance_type = "m3.medium"
     aws.region = "us-west-1"
     override.ssh.username = "ubuntu"
     override.ssh.private_key_path = CONF["ssh_private_key_path"]
+    aws.block_device_mapping = [{
+      'DeviceName' => '/dev/sda1',
+      'Ebs.VolumeSize' => 20,
+      'Ebs.VolumeType' => 'gp2',
+      'Ebs.DeleteOnTermination' => 'true'
+    }]
   end
 
   docker_provision(config)
