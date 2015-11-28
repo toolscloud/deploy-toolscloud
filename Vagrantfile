@@ -73,7 +73,7 @@ def docker_provision(config)
 -v /applications/postgresql/var/lib/postgresql:/var/lib/postgresql \
 -v /applications/postgresql/run/postgresql:/run/postgresql"
 
-    d.run "pla", image: "andretadeu/phpldapadmin:#{phpldapadmin_tag}",
+    d.run "pla", image: "toolscloud/phpldapadmin:#{phpldapadmin_tag}",
     args: "--link ambassador:ldap"
 
     d.run "gitblit", image: "toolscloud/gitblit:#{gitblit_tag}",
@@ -101,7 +101,7 @@ def docker_provision(config)
 
     d.run "manager", image: "toolscloud/manager:#{manager_tag}",
     args: "-v /applications/manager/var/log/apache2:/var/log/apache2 --link ambassador:postgresql --link ambassador:ldap --link ambassador:jenkins \
---link ambassador:redmine --link ambassador:nexus --link ambassador:sonar --link ambassador:git \
+--link redmine:redmine --link ambassador:nexus --link ambassador:sonar --link ambassador:git \
 --link ambassador:pla --link ambassador:testlink -p 8000:80 -p 4443:443"
 
   end
