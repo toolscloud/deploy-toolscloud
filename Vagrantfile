@@ -98,13 +98,6 @@ Vagrant.configure("2") do |config|
     #manager
     override.vm.network :forwarded_port, host: 4443, guest: 4443
     override.vm.network :forwarded_port, host: 8000, guest: 8000
-
-    #redmine
-    override.vm.network :forwarded_port, host: 8081, guest: 8081
-    override.vm.network :forwarded_port, host: 8444, guest: 8444
-
-    #testlink
-    override.vm.network :forwarded_port, host: 8082, guest: 8082
   end
 
   config.vm.provider "aws" do |aws, override|
