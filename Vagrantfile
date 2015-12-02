@@ -74,7 +74,7 @@ def docker_provision(config)
 -v /applications/postgresql/run/postgresql:/run/postgresql"
 
     d.run "pla", image: "toolscloud/phpldapadmin:#{phpldapadmin_tag}",
-    args: "--link ambassador:ldap"
+    args: "--link ambassador:ldap -p 443:443"
 
     d.run "gitblit", image: "toolscloud/gitblit:#{gitblit_tag}",
     args: "-p 9418:9418 -p 29418:29418 --link ambassador:ldap"
@@ -97,11 +97,11 @@ def docker_provision(config)
     args: "--link ambassador:postgresql --link ambassador:ldap --link ambassador:git -e 'DBMS=postgresql'"
 
     d.run "testlink", image: "toolscloud/testlink:#{testlink_tag}",
-    args: "--link ambassador:postgresql -p 8082:80"
+    args: "--link ambassador:postgresql --link ambassador:ldap -p 8082:8082"
 
     d.run "manager", image: "toolscloud/manager:#{manager_tag}",
     args: "-v /applications/manager/var/log/apache2:/var/log/apache2 --link ambassador:postgresql --link ambassador:ldap --link ambassador:jenkins \
---link redmine:redmine --link ambassador:nexus --link ambassador:sonar --link ambassador:git \
+--link redmine:redmine --link ambassador:nexus --link ambassador:sonar --link gitblit:git \
 --link ambassador:pla --link ambassador:testlink -p 8000:80 -p 4443:443"
 
   end
