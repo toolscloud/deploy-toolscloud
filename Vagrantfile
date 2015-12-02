@@ -2,33 +2,7 @@ require 'yaml'
 
 CONF = YAML::load_file("vagrant_config.yml")
 
-$createDockerFolder = <<SCRIPT
-sudo mkdir -p $HOME/.docker /root/.docker
-chown -R $USER:$USER $HOME/.docker
-SCRIPT
-
-$handleDockerhubKey = <<SCRIPT
-sudo chmod +rw /home/vagrant/.docker/config.json
-sudo cp /home/vagrant/.docker/config.json /root/.docker/config.json
-SCRIPT
-
-$handleAWSDockerhubKey = <<SCRIPT
-sudo chmod +rw /home/ubuntu/.docker/config.json
-sudo cp /home/ubuntu/.docker/config.json /root/.docker/config.json
-SCRIPT
-
 def docker_provision(config)
-  config.vm.provision "shell", inline: $createDockerFolder
-  config.vm.provision "file", source: "~/.docker/config.json", destination: "~/.docker/config.json"
-
-  provider_is_aws  = (!ARGV.nil? && ARGV.join('').include?('provider=aws'))
-
-  if (provider_is_aws)
-    config.vm.provision "shell", inline: $handleAWSDockerhubKey
-  else
-    config.vm.provision "shell", inline: $handleDockerhubKey
-  end
-
   #image tags used at pull and run steps;
   data_tag = "1.0"
   postgresql_tag = "dev"
