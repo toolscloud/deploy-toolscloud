@@ -71,7 +71,7 @@ def docker_provision(config)
     args: "--link ambassador:postgresql --link ambassador:ldap --link ambassador:git -e 'DBMS=postgresql'"
 
     d.run "testlink", image: "toolscloud/testlink:#{testlink_tag}",
-    args: "--link ambassador:postgresql --link ambassador:ldap -p 8082:8082"
+    args: "--link ambassador:postgresql --link ambassador:ldap"
 
     d.run "manager", image: "toolscloud/manager:#{manager_tag}",
     args: "-v /applications/manager/var/log/apache2:/var/log/apache2 --link ambassador:postgresql --link ambassador:ldap --link ambassador:jenkins \
