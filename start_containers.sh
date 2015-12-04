@@ -70,5 +70,5 @@ docker run -d --name manager \
     -v /applications/manager/var/log/apache2:/var/log/apache2  \
     --link ambassador:postgresql --link ambassador:ldap --link ambassador:jenkins \
     --link redmine:redmine --link ambassador:nexus --link ambassador:sonar --link gitblit:git \
-    --link ambassador:pla --link ambassador:testlink -p 8000:80 -p 4443:443 \
+    --link ambassador:pla --link ambassador:testlink \
     toolscloud/manager:${manager_tag}
