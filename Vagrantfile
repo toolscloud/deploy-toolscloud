@@ -40,7 +40,8 @@ def docker_provision(config)
     d.run "data", image: "toolscloud/data:#{data_tag}"
 
     d.run "ldap", image: "toolscloud/ldap:#{ldap_tag}",
-    args: "--volumes-from data -v /applications/ldap/usr/local/etc/openldap:/usr/local/etc/openldap "
+    args: "--volumes-from data \
+-v /applications/ldap/usr/local/etc/openldap:/usr/local/etc/openldap "
 
     d.run "postgresql", image: "toolscloud/postgresql:#{postgresql_tag}",
     args: "--volumes-from data \
@@ -48,17 +49,19 @@ def docker_provision(config)
 -v /applications/postgresql/run/postgresql:/run/postgresql"
 
     d.run "pla", image: "toolscloud/phpldapadmin:#{phpldapadmin_tag}",
-    args: "--link ambassador:ldap -p 443:443"
+    args: "--link ambassador:ldap"
 
     d.run "gitblit", image: "toolscloud/gitblit:#{gitblit_tag}",
     args: "-p 9418:9418 -p 29418:29418 --link ambassador:ldap"
 
     d.run "nexus", image: "toolscloud/sonatype-nexus:#{nexus_tag}",
-    args: "-p 8080:8081 --link ambassador:ldap --volumes-from data -v /applications/nexus/opt/sonatype-work:/opt/sonatype-work"
+    args: "--link ambassador:ldap --volumes-from data \
+-v /applications/nexus/opt/sonatype-work:/opt/sonatype-work"
 
     d.run "redmine", image: "toolscloud/redmine:#{redmine_tag}",
-    args: "-p 8081:8081 -p 8444:8444 --link ambassador:postgresql --link ambassador:ldap --link ambassador:git \
--e 'DB_TYPE=postgres' -e 'DB_NAME=redmine_production' -e 'DB_USER=redmine' -e 'DB_PASS=!AdewhmOP@12' \
+    args: "--link ambassador:postgresql --link ambassador:ldap \
+--link ambassador:git -e 'DB_TYPE=postgres' -e 'DB_NAME=redmine_production' \
+-e 'DB_USER=redmine' -e 'DB_PASS=!AdewhmOP@12' \
 --volumes-from data -v /applications/redmine/data:/home/redmine/data \
 -v /applications/redmine/var/log/redmine:/var/log/redmine"
 
@@ -68,15 +71,17 @@ def docker_provision(config)
 --volumes-from data -u root -v /applications/jenkins_home:/var/jenkins_home"
 
     d.run "sonar", image: "toolscloud/sonar-server:#{sonar_tag}",
-    args: "--link ambassador:postgresql --link ambassador:ldap --link ambassador:git -e 'DBMS=postgresql'"
+    args: "--link ambassador:postgresql --link ambassador:ldap \
+--link ambassador:git -e 'DBMS=postgresql'"
 
     d.run "testlink", image: "toolscloud/testlink:#{testlink_tag}",
     args: "--link ambassador:postgresql --link ambassador:ldap"
 
     d.run "manager", image: "toolscloud/manager:#{manager_tag}",
-    args: "-v /applications/manager/var/log/apache2:/var/log/apache2 --link ambassador:postgresql --link ambassador:ldap --link ambassador:jenkins \
---link redmine:redmine --link ambassador:nexus --link ambassador:sonar --link gitblit:git \
---link ambassador:pla --link ambassador:testlink -p 8000:80 -p 4443:443"
+    args: "-v /applications/manager/var/log/apache2:/var/log/apache2 \
+--link ambassador:postgresql --link ambassador:ldap --link ambassador:jenkins \
+--link redmine:redmine --link ambassador:nexus --link ambassador:sonar \
+--link gitblit:git --link ambassador:pla --link ambassador:testlink -p 80:80 -p 443:443"
 
   end
 end
@@ -96,8 +101,8 @@ Vagrant.configure("2") do |config|
     override.vm.network "private_network", ip: "192.168.56.4"
 
     #manager
-    override.vm.network :forwarded_port, host: 4443, guest: 4443
-    override.vm.network :forwarded_port, host: 8000, guest: 8000
+    override.vm.network :forwarded_port, host: 4443, guest: 443
+    override.vm.network :forwarded_port, host: 8000, guest: 80
   end
 
   config.vm.provider "aws" do |aws, override|
