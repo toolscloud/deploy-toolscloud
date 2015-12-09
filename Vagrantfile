@@ -41,7 +41,8 @@ def docker_provision(config)
 
     d.run "ldap", image: "toolscloud/ldap:#{ldap_tag}",
     args: "--volumes-from data \
--v /applications/ldap/usr/local/etc/openldap:/usr/local/etc/openldap "
+-v /applications/ldap/usr/local/etc/openldap:/usr/local/etc/openldap \
+-v /applications/ldap/var/lib/ldap:/var/lib/ldap"
 
     d.run "postgresql", image: "toolscloud/postgresql:#{postgresql_tag}",
     args: "--volumes-from data \
