@@ -5,16 +5,16 @@ CONF = YAML::load_file("vagrant_config.yml")
 def docker_provision(config)
   #image tags used at pull and run steps;
   data_tag = "1.0"
-  postgresql_tag = "3.0"
-  redmine_tag = "3.0"
-  jenkins_tag = "3.0"
-  nexus_tag = "3.0"
-  sonar_tag = "3.0"
-  ldap_tag = "3.0"
-  phpldapadmin_tag = "3.0"
-  gitblit_tag = "3.0"
-  testlink_tag = "3.0"
-  manager_tag = "3.0"
+  postgresql_tag = "dev"
+  redmine_tag = "dev"
+  jenkins_tag = "dev"
+  nexus_tag = "dev"
+  sonar_tag = "dev"
+  ldap_tag = "dev"
+  phpldapadmin_tag = "dev"
+  gitblit_tag = "dev"
+  testlink_tag = "dev"
+  manager_tag = "dev"
   ambassador_tag = "latest"
 
   config.vm.provision "docker" do |d|
