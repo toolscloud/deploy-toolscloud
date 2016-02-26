@@ -4,22 +4,20 @@ CONF = YAML::load_file("vagrant_config.yml")
 
 def docker_provision(config)
   #image tags used at pull and run steps;
-  data_tag = "1.0"
-  postgresql_tag = "dev"
-  redmine_tag = "dev"
-  jenkins_tag = "dev"
-  nexus_tag = "dev"
-  sonar_tag = "dev"
-  ldap_tag = "dev"
-  phpldapadmin_tag = "dev"
-  gitblit_tag = "dev"
-  testlink_tag = "dev"
-  manager_tag = "dev"
+  postgresql_tag = "4.0"
+  redmine_tag = "4.0"
+  jenkins_tag = "4.0"
+  nexus_tag = "4.0"
+  sonar_tag = "4.0"
+  ldap_tag = "4.0"
+  phpldapadmin_tag = "ssl-4.0"
+  gitblit_tag = "4.0"
+  testlink_tag = "ssl-4.0"
+  manager_tag = "ssl-4.0"
   ambassador_tag = "latest"
 
   config.vm.provision "docker" do |d|
     d.pull_images "cpuguy83/docker-grand-ambassador:#{ambassador_tag}"
-    d.pull_images "toolscloud/data:#{data_tag}"
     d.pull_images "toolscloud/ldap:#{ldap_tag}"
     d.pull_images "toolscloud/postgresql:#{postgresql_tag}"
     d.pull_images "toolscloud/phpldapadmin:#{phpldapadmin_tag}"
@@ -37,39 +35,36 @@ def docker_provision(config)
 -sock /docker.sock -wait=true -log-level=\"debug\"",
     args: "-v /var/run/docker.sock:/docker.sock"
 
-    d.run "data", image: "toolscloud/data:#{data_tag}"
-
     d.run "ldap", image: "toolscloud/ldap:#{ldap_tag}",
-    args: "--volumes-from data \
--v /applications/ldap/usr/local/etc/openldap:/usr/local/etc/openldap \
+    args: "-v /applications/ldap/usr/local/etc/openldap:/usr/local/etc/openldap \
 -v /applications/ldap/var/lib/ldap:/var/lib/ldap"
 
     d.run "postgresql", image: "toolscloud/postgresql:#{postgresql_tag}",
-    args: "--volumes-from data \
--v /applications/postgresql/var/lib/postgresql:/var/lib/postgresql \
+    args: "-v /applications/postgresql/var/lib/postgresql:/var/lib/postgresql \
 -v /applications/postgresql/run/postgresql:/run/postgresql"
 
     d.run "pla", image: "toolscloud/phpldapadmin:#{phpldapadmin_tag}",
     args: "--link ambassador:ldap"
 
     d.run "gitblit", image: "toolscloud/gitblit:#{gitblit_tag}",
-    args: "-p 9418:9418 -p 29418:29418 --link ambassador:ldap"
+    args: "-p 9418:9418 -p 29418:29418 --link ambassador:ldap \
+-v /applications/gitblit-data:/opt/gitblit-data -p 8085:8085"
 
     d.run "nexus", image: "toolscloud/sonatype-nexus:#{nexus_tag}",
-    args: "--link ambassador:ldap --volumes-from data \
+    args: "--link ambassador:ldap \
 -v /applications/nexus/opt/sonatype-work:/opt/sonatype-work"
 
     d.run "redmine", image: "toolscloud/redmine:#{redmine_tag}",
     args: "--link ambassador:postgresql --link ambassador:ldap \
 --link ambassador:git -e 'DB_TYPE=postgres' -e 'DB_NAME=redmine_production' \
 -e 'DB_USER=redmine' -e 'DB_PASS=!AdewhmOP@12' \
---volumes-from data -v /applications/redmine/data:/home/redmine/data \
+-v /applications/redmine/data:/home/redmine/data \
 -v /applications/redmine/var/log/redmine:/var/log/redmine"
 
     d.run "jenkins", image: "toolscloud/jenkins:#{jenkins_tag}",
     args: "-p 50000:50000 --link ambassador:ldap --link ambassador:postgresql \
 --link ambassador:git --link ambassador:nexus \
---volumes-from data -u root -v /applications/jenkins_home:/var/jenkins_home"
+-u root -v /applications/jenkins_home:/var/jenkins_home"
 
     d.run "sonar", image: "toolscloud/sonar-server:#{sonar_tag}",
     args: "--link ambassador:postgresql --link ambassador:ldap \
@@ -100,10 +95,6 @@ Vagrant.configure("2") do |config|
     vb.cpus = 2
 
     override.vm.network "private_network", ip: "192.168.56.4"
-
-    #manager
-    override.vm.network :forwarded_port, host: 4443, guest: 443
-    override.vm.network :forwarded_port, host: 8000, guest: 80
   end
 
   config.vm.provider "aws" do |aws, override|
@@ -115,7 +106,7 @@ Vagrant.configure("2") do |config|
     aws.keypair_name = CONF["aws_keypair_name"]
     aws.security_groups = CONF["aws_security_groups"]
     aws.ami = "ami-df6a8b9b"
-    aws.instance_type = "m3.medium"
+    aws.instance_type = "m4.large"
     aws.region = "us-west-1"
     override.ssh.username = "ubuntu"
     override.ssh.private_key_path = CONF["ssh_private_key_path"]
