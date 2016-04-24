@@ -5,7 +5,7 @@ CONF = YAML::load_file("vagrant_config.yml")
 def docker_provision(config)
   #image tags used at pull and run steps;
   postgresql_tag = "4.0"
-  redmine_tag = "4.0"
+  redmine_tag = "ssl-4.0"
   jenkins_tag = "4.0"
   nexus_tag = "4.0"
   sonar_tag = "4.0"
