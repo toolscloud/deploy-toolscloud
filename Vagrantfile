@@ -4,16 +4,16 @@ CONF = YAML::load_file("vagrant_config.yml")
 
 def docker_provision(config)
   #image tags used at pull and run steps;
-  postgresql_tag = "4.0"
-  redmine_tag = "ssl-4.0"
-  jenkins_tag = "4.0"
-  nexus_tag = "4.0"
-  sonar_tag = "4.0"
-  ldap_tag = "4.0"
-  phpldapadmin_tag = "ssl-4.0"
-  gitblit_tag = "4.0"
-  testlink_tag = "ssl-4.0"
-  manager_tag = "ssl-4.0"
+  postgresql_tag = "5.0"
+  redmine_tag = "ssl-5.0"
+  jenkins_tag = "5.0"
+  nexus_tag = "5.0"
+  sonar_tag = "5.0"
+  ldap_tag = "5.0"
+  phpldapadmin_tag = "ssl-5.0"
+  gitblit_tag = "ssl-5.0"
+  testlink_tag = "ssl-5.0"
+  manager_tag = "ssl-5.0"
   ambassador_tag = "latest"
 
   config.vm.provision "docker" do |d|
@@ -105,7 +105,7 @@ Vagrant.configure("2") do |config|
     aws.secret_access_key = CONF["secret_access_key"]
     aws.keypair_name = CONF["aws_keypair_name"]
     aws.security_groups = CONF["aws_security_groups"]
-    aws.ami = "ami-df6a8b9b"
+    aws.ami = "ami-84423ae4"
     aws.instance_type = "m4.large"
     aws.region = "us-west-1"
     override.ssh.username = "ubuntu"
