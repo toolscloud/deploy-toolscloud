@@ -8,7 +8,7 @@ def docker_provision(config)
   redmine_tag = "ssl-5.0"
   jenkins_tag = "5.0"
   nexus_tag = "5.0"
-  sonar_tag = "4.0"
+  sonar_tag = "5.0"
   ldap_tag = "5.0"
   phpldapadmin_tag = "ssl-5.0"
   gitblit_tag = "ssl-5.0"
