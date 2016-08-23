@@ -86,6 +86,7 @@ Vagrant.configure("2") do |config|
   config.vm.hostname = "basemachine-tc"
   config.ssh.shell = "bash -c 'BASH_ENV=/etc/profile exec bash'"
   config.vm.define "localvm"
+  config.vm.network "forwarded_port", guest: 443, host: 4443
 
   config.vm.provider "virtualbox" do |vb, override|
     config.vm.box = "trusty-server-cloudimg-amd64-vagrant-disk1"
