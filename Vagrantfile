@@ -2,6 +2,12 @@ require 'yaml'
 
 CONF = YAML::load_file("vagrant_config.yml")
 
+$script = <<SCRIPT
+docker exec -it manager rm -f /var/www/html
+docker exec -it manager ln -s /var/www/ /var/www/html
+SCRIPT
+
+
 def docker_provision(config)
   #image tags used at pull and run steps;
   postgresql_tag = "5.0"
@@ -87,6 +93,8 @@ Vagrant.configure("2") do |config|
   config.ssh.shell = "bash -c 'BASH_ENV=/etc/profile exec bash'"
   config.vm.define "localvm"
   config.vm.network "forwarded_port", guest: 443, host: 4443
+
+  config.vm.provision "shell", inline: $script
 
   config.vm.provider "virtualbox" do |vb, override|
     override.vm.box = "trusty-server-cloudimg-amd64-vagrant-disk1"
