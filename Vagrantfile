@@ -5,15 +5,15 @@ CONF = YAML::load_file("vagrant_config.yml")
 def docker_provision(config)
   #image tags used at pull and run steps;
   postgresql_tag = "5.0"
-  redmine_tag = "ssl-5.0"
+  redmine_tag = "6.0"
   jenkins_tag = "5.0"
   nexus_tag = "5.0"
-  sonar_tag = "5.0"
-  ldap_tag = "5.0"
-  phpldapadmin_tag = "ssl-5.0"
-  gitblit_tag = "ssl-5.0"
-  testlink_tag = "ssl-5.0"
-  manager_tag = "ssl-5.0"
+  sonar_tag = "5.1"
+  ldap_tag = "5.1"
+  phpldapadmin_tag = "6.0"
+  gitblit_tag = "6.1"
+  testlink_tag = "6.0"
+  manager_tag = "6.0"
   ambassador_tag = "latest"
 
   config.vm.provision "docker" do |d|
@@ -89,8 +89,8 @@ Vagrant.configure("2") do |config|
   config.vm.network "forwarded_port", guest: 443, host: 4443
 
   config.vm.provider "virtualbox" do |vb, override|
-    config.vm.box = "trusty-server-cloudimg-amd64-vagrant-disk1"
-    config.vm.box_url = "https://cloud-images.ubuntu.com/vagrant/trusty/current/trusty-server-cloudimg-amd64-vagrant-disk1.box"
+    override.vm.box = "trusty-server-cloudimg-amd64-vagrant-disk1"
+    override.vm.box_url = "https://cloud-images.ubuntu.com/vagrant/trusty/current/trusty-server-cloudimg-amd64-vagrant-disk1.box"
     vb.name = "localvm"
     vb.memory = 3072
     vb.cpus = 2
@@ -117,6 +117,14 @@ Vagrant.configure("2") do |config|
       'Ebs.VolumeType' => 'gp2',
       'Ebs.DeleteOnTermination' => 'true'
     }]
+  end
+
+
+  config.vm.provider "managed" do |managed_config, override|
+    override.vm.box = "tknerr/managed-server-dummy"
+    managed_config.server = "129.157.161.175"
+    override.ssh.username = "ubuntu"
+    override.ssh.private_key_path = "/Users/eldermoraes/.ssh/id_rsa"
   end
 
   docker_provision(config)
