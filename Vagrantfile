@@ -3,8 +3,8 @@ require 'yaml'
 CONF = YAML::load_file("vagrant_config.yml")
 
 $script = <<SCRIPT
-docker exec -it manager rm -rf /var/www/html
-docker exec -it manager ln -s /var/www/ /var/www/html
+docker exec manager rm -rf /var/www/html
+docker exec manager ln -s /var/www/ /var/www/html
 SCRIPT
 
 
