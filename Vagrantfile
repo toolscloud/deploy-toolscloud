@@ -88,8 +88,8 @@ Vagrant.configure("2") do |config|
   config.vm.network "forwarded_port", guest: 443, host: 4443
 
   config.vm.provider "virtualbox" do |vb, override|
-    config.vm.box = "trusty-server-cloudimg-amd64-vagrant-disk1"
-    config.vm.box_url = "https://cloud-images.ubuntu.com/vagrant/trusty/current/trusty-server-cloudimg-amd64-vagrant-disk1.box"
+    override.vm.box = "trusty-server-cloudimg-amd64-vagrant-disk1"
+    override.vm.box_url = "https://cloud-images.ubuntu.com/vagrant/trusty/current/trusty-server-cloudimg-amd64-vagrant-disk1.box"
     vb.name = "localvm"
     vb.memory = 3072
     vb.cpus = 2
@@ -116,6 +116,14 @@ Vagrant.configure("2") do |config|
       'Ebs.VolumeType' => 'gp2',
       'Ebs.DeleteOnTermination' => 'true'
     }]
+  end
+
+
+  config.vm.provider "managed" do |managed_config, override|
+    override.vm.box = "tknerr/managed-server-dummy"
+    managed_config.server = "129.157.161.175"
+    override.ssh.username = "ubuntu"
+    override.ssh.private_key_path = "/Users/eldermoraes/.ssh/id_rsa"
   end
 
   docker_provision(config)
