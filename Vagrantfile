@@ -4,16 +4,16 @@ CONF = YAML::load_file("vagrant_config.yml")
 
 def docker_provision(config)
   #image tags used at pull and run steps;
-  postgresql_tag = "5.0"
-  redmine_tag = "ssl-5.0"
-  jenkins_tag = "5.0"
-  nexus_tag = "5.0"
-  sonar_tag = "5.0"
-  ldap_tag = "5.0"
-  phpldapadmin_tag = "ssl-5.0"
-  gitblit_tag = "ssl-5.0"
-  testlink_tag = "ssl-5.0"
-  manager_tag = "ssl-5.0"
+  postgresql_tag = "6.0"
+  redmine_tag = "7.0"
+  jenkins_tag = "6.0"
+  nexus_tag = "6.0"
+  sonar_tag = "6.0"
+  ldap_tag = "6.0"
+  phpldapadmin_tag = "7.0"
+  gitblit_tag = "7.0"
+  testlink_tag = "7.0"
+  manager_tag = "7.0"
   ambassador_tag = "latest"
 
   config.vm.provision "docker" do |d|
@@ -56,8 +56,7 @@ def docker_provision(config)
 
     d.run "redmine", image: "toolscloud/redmine:#{redmine_tag}",
     args: "--link ambassador:postgresql --link ambassador:ldap \
---link ambassador:git -e 'DB_TYPE=postgres' -e 'DB_NAME=redmine_production' \
--e 'DB_USER=redmine' -e 'DB_PASS=!AdewhmOP@12' \
+--link ambassador:git -e 'DB_TYPE=postgres' \
 -v /applications/redmine/data:/home/redmine/data \
 -v /applications/redmine/var/log/redmine:/var/log/redmine"
 
@@ -68,7 +67,7 @@ def docker_provision(config)
 
     d.run "sonar", image: "toolscloud/sonar-server:#{sonar_tag}",
     args: "--link ambassador:postgresql --link ambassador:ldap \
---link ambassador:git -e 'DBMS=postgresql'"
+--link ambassador:git"
 
     d.run "testlink", image: "toolscloud/testlink:#{testlink_tag}",
     args: "--link ambassador:postgresql --link ambassador:ldap"
@@ -83,7 +82,7 @@ def docker_provision(config)
 end
 
 Vagrant.configure("2") do |config|
-  config.vm.hostname = "basemachine-tc"
+  config.vm.hostname = "test-toolscloud-env"
   config.ssh.shell = "bash -c 'BASH_ENV=/etc/profile exec bash'"
   config.vm.define "localvm"
   config.vm.network "forwarded_port", guest: 443, host: 4443
@@ -106,7 +105,7 @@ Vagrant.configure("2") do |config|
     aws.secret_access_key = CONF["secret_access_key"]
     aws.keypair_name = CONF["aws_keypair_name"]
     aws.security_groups = CONF["aws_security_groups"]
-    aws.ami = "ami-84423ae4"
+    aws.ami = "ami-b09da8d0"
     aws.instance_type = "m4.large"
     aws.region = "us-west-1"
     override.ssh.username = "ubuntu"
