@@ -13,7 +13,7 @@ def docker_provision(config)
   phpldapadmin_tag = "7.0"
   gitblit_tag = "7.0"
   testlink_tag = "7.0"
-  manager_tag = "7.0"
+  manager_tag = "7.1"
   ambassador_tag = "latest"
 
   config.vm.provision "docker" do |d|
