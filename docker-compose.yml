@@ -1,128 +1,108 @@
+version: '3'
 
-ambassador:
-   container_name:
-      - ldap 
-      - gitblit 
-      - nexus 
-      - jenkins 
-      - redmine 
-      - postgresql
-      - pla 
-      - sonar 
-      - testlink 
-      - mysql
-   image: cpuguy83/docker-grand-ambassador:latest
-   volumes:
-      - /var/run/docker.sock:/docker.sock
-   # variaveis que nao encontrei equivalente
-   # -sock /docker.sock -wait=true -log-level=\"debug\"
-
-data: 
-   image: toolscloud/data:1.0
-
-ldap:
-   image: toolscloud/ldap:dev
-   volumes_from:
-      - data 
-   volumes: 
-      - /applications/ldap/usr/local/etc/openldap:/usr/local/etc/openldap
-
-postgresql:
-   image: toolscloud/postgresql:dev
-    volumes_from:
-       - data
-   volumes: 
-      - /applications/postgresql/var/lib/postgresql:/var/lib/postgresql
-      - /applications/postgresql/run/postgresql:/run/postgresql
-
-pla: 
-   image: toolscloud/phpldapadmin:dev
-    links: 
-       - ambassador:ldap
-
-gitblit:
-   image: toolscloud/gitblit:dev
-    ports: 
-       - "9418:9418"
-       - "29418:29418" 
-    links:
-       - ambassador:ldap
-
-nexus:
-   image: toolscloud/sonatype-nexus:dev
-    ports: 
-       - "8080:8081"
-    links:
-       - ambassador:ldap
-    volumes_from:
-       - data
+services: 
+  ldap:
+    image: toolscloud/ldap:v18.0
+    volumes:
+      - /var/lib/ldap
+      - /usr/local/var/openldap-data
+    networks:
+      - general
+  
+  postgresql:
+    image: toolscloud/postgresql:v18.0
     volumes: 
-       - /applications/nexus/opt/sonatype-work:/opt/sonatype-work
+      - /var/lib/postgresql
+      - /run/postgresql
+    networks:
+      - general
 
-redmine
-   image: toolscloud/redmine:dev
-   ports:
-       - "8081:8081" 
-       - "8444:8444"
-    links:
-       - ambassador:postgresql 
-       - ambassador:ldap 
-       - ambassador:git
-
-   environment: 
+  pla: 
+    image: toolscloud/phpldapadmin:v18.0
+    networks:
+      - general
+  
+  git:
+    image: toolscloud/gitblit:v18.0
+    ports: 
+      - "9418:9418"
+      - "29418:29418"
+      # - "8085:8085"
+      # - "8447:8447"
+    volumes: 
+      - /opt/gitblit-data
+    networks:
+      - general
+  
+  nexus:
+    image: toolscloud/sonatype-nexus:v18.0
+    # ports: 
+    #   - "8080:8081"
+    volumes: 
+      - /opt/sonatype-work
+    networks:
+      - general
+  
+  redmine:
+    image: toolscloud/redmine:v18.0
+    # ports:
+    #   - "8444:8444"
+    networks:
+      - general
+    environment: 
       - DB_TYPE=postgres
       - DB_NAME=redmine_production 
       - DB_USER=redmine
       - DB_PASS=!AdewhmOP@12
-   volumes_from:
-      - data 
-   volumes:
-      - /applications/redmine/data:/home/redmine/data
-      - /applications/redmine/var/log/redmine:/var/log/redmine
-
-jenkins
-   image: toolscloud/jenkins:dev
+    volumes:
+      - /home/redmine/data
+      - /var/log/redmine
+  
+  jenkins:
+    image: toolscloud/jenkins:v18.0.1
     ports:
-       - "50000:50000" 
-    links:
-       - ambassador:ldap 
-       - ambassador:postgresql
-      - ambassador:git 
-      - ambassador:nexus
-   volumes_from:
-      - data
-   user: root 
-   volumes:
-      - /applications/jenkins_home:/var/jenkins_home
-
-sonar
-   image: toolscloud/sonar-server:dev
-   links:
-       - ambassador:postgresql 
-       - ambassador:ldap 
-       - ambassador:git
+      - "50000:50000"
+    user: root 
+    volumes:
+      - /var/jenkins_home
+      - /root/.m2
+    networks:
+      - general
+  
+  sonar:
+    image: toolscloud/sonar-server:v18.0
     environment:  
-       - DBMS=postgresql
-
-testlink
-   image: toolscloud/testlink:dev
-    links:
-       - ambassador:postgresql 
+      - DBMS=postgresql
+    volumes: 
+      - /opt/sonar/extensions
+      - /opt/sonar/data
+    networks:
+      - general
+  
+  testlink:
+    image: toolscloud/testlink:v18.0.1
+    # ports: 
+    #   - "8082:80"
+    volumes:
+      - /var/testlink/upload_area
+      - /var/testlink/logs
+    networks:
+      - general
+  
+  manager:
+    image: toolscloud/manager:v18.0
+    volumes:
+      - /var/log/apache2
+      - /etc/ssl/certs
+      - /etc/ssl/private
     ports: 
-       "8082:80"
+      - "8000:80"
+      - "4443:443"
+    networks:
+      - general
 
-manager
-   image: toolscloud/manager:dev
-    links:
-       - ambassador:postgresql 
-       - ambassador:ldap 
-       - ambassador:jenkins
-      - ambassador:redmine 
-      - ambassador:nexus 
-      - ambassador:sonar 
-      - ambassador:git
-      - ambassador:pla 
-      - ambassador:testlink 
-    ports: 
-      "8000:80"
-      "4443:443"
+# volumes:
+#   data:
+
+networks:
+  general:
