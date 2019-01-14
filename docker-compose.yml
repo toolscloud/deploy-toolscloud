@@ -1,52 +1,53 @@
 version: '3'
 
+volumes:
+  postgresql-etc:
+  nexus-etc:
+
 services: 
   ldap:
-    image: toolscloud/ldap:v18.0
+    image: toolscloud/ldap:v8.1-dev
     volumes:
-      - /var/lib/ldap
-      - /usr/local/var/openldap-data
+      - ${TOOLSCLOUD_BASE_FOLDER}/ldap:/var/lib/ldap
+      - ${TOOLSCLOUD_BASE_FOLDER}/openldap-data:/usr/local/var/openldap-data
     networks:
       - general
   
   postgresql:
-    image: toolscloud/postgresql:v18.0
+    image: toolscloud/postgresql:v8.0
     volumes: 
-      - /var/lib/postgresql
-      - /run/postgresql
+      - ${TOOLSCLOUD_BASE_FOLDER}/postgresql:/var/lib/postgresql
+      - postgresql-etc:/run/postgresql
     networks:
       - general
 
   pla: 
-    image: toolscloud/phpldapadmin:v18.0
+    image: toolscloud/phpldapadmin:v8.0
     networks:
       - general
   
   git:
-    image: toolscloud/gitblit:v18.0
+    image: toolscloud/gitblit:v8.1-dev
     ports: 
       - "9418:9418"
       - "29418:29418"
-      # - "8085:8085"
-      # - "8447:8447"
     volumes: 
-      - /opt/gitblit-data
+      - ${TOOLSCLOUD_BASE_FOLDER}/gitblit-data:/opt/gitblit-data
     networks:
       - general
   
   nexus:
-    image: toolscloud/sonatype-nexus:v18.0
-    # ports: 
-    #   - "8080:8081"
+    image: toolscloud/sonatype-nexus:v8.1-dev
     volumes: 
-      - /opt/sonatype-work
+      - ${TOOLSCLOUD_BASE_FOLDER}/nexus-data:/nexus-data
+      - ${TOOLSCLOUD_BASE_FOLDER}/nexus-backup:/nexus-backup
+      - nexus-etc:/sys/fs/cgroup
+      - nexus-etc:/run
     networks:
       - general
   
   redmine:
-    image: toolscloud/redmine:v18.0
-    # ports:
-    #   - "8444:8444"
+    image: toolscloud/redmine:v8.1-dev
     networks:
       - general
     environment: 
@@ -55,54 +56,52 @@ services:
       - DB_USER=redmine
       - DB_PASS=!AdewhmOP@12
     volumes:
-      - /home/redmine/data
-      - /var/log/redmine
+      - ${TOOLSCLOUD_BASE_FOLDER}/redmine/data:/home/redmine/data
+      - ${TOOLSCLOUD_BASE_FOLDER}/redmine/log:/var/log/redmine
+      - ${TOOLSCLOUD_BASE_FOLDER}/redmine/config:/home/redmine/config
+      - ${TOOLSCLOUD_BASE_FOLDER}/redmine/files:/home/redmine/files
   
   jenkins:
-    image: toolscloud/jenkins:v18.0.1
+    image: toolscloud/jenkins:v8.2-dev
     ports:
       - "50000:50000"
     user: root 
     volumes:
-      - /var/jenkins_home
-      - /root/.m2
+      - ${TOOLSCLOUD_BASE_FOLDER}/jenkins-home:/var/jenkins_home
+      - ${TOOLSCLOUD_BASE_FOLDER}/.m2:/root/.m2
+      - /var/run/docker.sock:/var/run/docker.sock
     networks:
       - general
   
   sonar:
-    image: toolscloud/sonar-server:v18.0
-    environment:  
+    image: toolscloud/sonar-server:v8.1-dev
+    environment:
       - DBMS=postgresql
     volumes: 
-      - /opt/sonar/extensions
-      - /opt/sonar/data
+      - ${TOOLSCLOUD_BASE_FOLDER}/sonar/extensions:/opt/sonar/extensions
+      - ${TOOLSCLOUD_BASE_FOLDER}/sonar/data:/opt/sonar/data
     networks:
       - general
   
   testlink:
-    image: toolscloud/testlink:v18.0
-    # ports: 
-    #   - "8082:80"
+    image: toolscloud/testlink:v8.0
     volumes:
-      - /var/testlink/upload_area
-      - /var/testlink/logs
+      - ${TOOLSCLOUD_BASE_FOLDER}/testlink/upload_area:/var/testlink/upload_area
+      - ${TOOLSCLOUD_BASE_FOLDER}/testlink/logs:/var/testlink/logs
     networks:
       - general
   
   manager:
-    image: toolscloud/manager:v18.0
+    image: toolscloud/manager:v8.1-dev
     volumes:
-      - /var/log/apache2
-      - /etc/ssl/certs
-      - /etc/ssl/private
+      - ${TOOLSCLOUD_BASE_FOLDER}/manager/apache2:/var/log/apache2
+      - ${TOOLSCLOUD_BASE_FOLDER}/manager/ssl/certs:/etc/ssl/certs
+      - ${TOOLSCLOUD_BASE_FOLDER}/manager/ssl/private:/etc/ssl/private
     ports: 
-      - "8000:80"
-      - "4443:443"
+      - "80:80"
+      - "443:443"
     networks:
       - general
-
-# volumes:
-#   data:
 
 networks:
   general:
