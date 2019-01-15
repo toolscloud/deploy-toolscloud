@@ -6,15 +6,17 @@ require 'yaml'
 CONF = YAML::load_file("vagrant_config.yml")
 
 Vagrant.configure("2") do |config|
-  config.vm.hostname = "toolscloud-env"
-  config.vm.define "localvm"
-  config.vm.network "forwarded_port", guest: 443, host: 443
 
   config.ssh.shell = "bash -c 'BASH_ENV=/etc/profile exec bash'"
   config.vm.provision "shell", path: "provision.sh"
 
+  config.vm.synced_folder ".", "/vagrant", type: "rsync", rsync__exclude: ".git/"
+
   config.vm.provider "virtualbox" do |vb, override|
     override.vm.box = "ubuntu/xenial64"
+    
+    override.vm.hostname = "toolscloud-env"
+    override.vm.define "localvm"
     override.vm.network "private_network", ip: "192.168.33.10"
 
     vb.name = "toolscloud-env"
@@ -34,7 +36,7 @@ Vagrant.configure("2") do |config|
     aws.keypair_name = CONF["aws_keypair_name"]
     aws.security_groups = CONF["aws_security_groups"]
     aws.ami = "ami-b09da8d0"
-    aws.instance_type = "m3.medium"
+    aws.instance_type = "m5.large"
     aws.region = "us-west-1"
     aws.block_device_mapping = [{
       'DeviceName' => '/dev/sda1',

@@ -55,21 +55,67 @@ Some other useful commands from Vagrant:
 
 ### AWS
 
-Same process done locally, but now inside a AWS instance:
+All the process is very similar comparing to the local VM. But this time you will be handling an AWS instance.
 
-```bash
-vagrant up --provider=aws 
-```
+1. Differently from local VM, to provision an AWS machine it will be necessary to install a Vagrant Plugin, [vagrant-aws](https://github.com/mitchellh/vagrant-aws).
+   ```bash
+   vagrant plugin install vagrant-aws
+   ```
+   **Note for OSX Troubleshooting:** If you have just migrated to OSX 10.14.x, maybe you will face some problems regarding Vagrant Plugin installations. You can read more on this [XCode release notes](https://developer.apple.com/documentation/xcode_release_notes/xcode_10_release_notes#3035624) and you this [GitHub Issue](https://github.com/sparklemotion/nokogiri/issues/1801). To solve this issue, you will need to execute the following command before trying to install the plugin.
+   ```bash
+   xcode-select --install 
+   ```
+   This command will popup a window asking to install XCode and to accept a software license. when it's finished, try to install the plugin again.
 
-In order to be able to run the AWS instance you must create a `vagrant_config.yml` file, as described in `vagrant_config_template.yml`, with the following parameters:
+2. Time to execute the AWS instance.
+   ```bash
+   vagrant up --provider=aws 
+   ```
 
-```yaml
-access_key_id: "" # AWS Access Key ID
-secret_access_key: "" # AWS Secret Access Key
-ssh_private_key_path: "" # Location of your AWS Key pair file
-aws_keypair_name: ""
-aws_security_groups: [""]
-```
+   In order to be able to run the AWS instance you must create a `vagrant_config.yml` file, as described in `vagrant_config_template.yml`, with the following parameters:
+   
+   ```yaml
+   access_key_id: "" # AWS Access Key ID
+   secret_access_key: "" # AWS Secret Access Key
+   ssh_private_key_path: "" # Location of your AWS Key pair file
+   aws_keypair_name: "" # Your Key Pairs on EC2 that match your private key
+   aws_security_groups: [""] # The 'default' group probably don't have SSH permission
+   ```
+
+   An example:
+   ```yaml
+   access_key_id: "ABCDEF1234567ABCD123"
+   secret_access_key: "sometHingbigwithnumbers423ANdlotsOfWOrds"
+   ssh_private_key_path: "~/.ssh/id_rsa_rcmoutinho"
+   aws_keypair_name: "id_rsa_rcmoutinho"
+   aws_security_groups: [ "default", "toolscloud-service" ]
+   ```
+
+   **Important Notes about AWS configuration:**
+
+   1. Did you set the right zone? This default configuration is using `us-west-1`.
+   
+   2. Does the Amazon Machine Image (AMI) exist in the selected zone? This config uses `ami-b09da8d0` located at `us-west-1`.
+   
+   3. Does you Key Pair is registered on the correct zone? Make sure the `aws_keypair_name` is available on the used zone, `us-west-1`.
+
+   4. Last but not least, make sure that selected `aws_security_groups` has permission to do SSH (like the example with `toolscloud-service`).
+
+3. If you are on a MacOSX, Vagrant will copy your DockerHub configuration to Amazon. But maybe it won't work if your Docker configuration *Securely store Docker logins in macOS keychain* is checked. If it's the case, the password is actually stored in MacOSX keystore. Docker won't give you any warning, and `docker login` will simply return. If this happens, to fix:
+
+   a. **Inside your amazon VM**, Remove the Docker configuration file.
+   ```bash
+   rm ~/.docker/config.json
+   ```
+   b. Execute the following command to recreate the auth file.
+   ```bash
+   docker login
+   ```
+
+4. Different from the local VM, if you change files in your computer, they will not sync with the remote VM. To refresh files, run:
+   ```bash
+   vagrant rsync
+   ```
 
 ## Using Toolscloud
 

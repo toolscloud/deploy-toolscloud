@@ -1,5 +1,5 @@
 access_key_id: "" # AWS Access Key ID
 secret_access_key: "" # AWS Secret Access Key
 ssh_private_key_path: "" # Location of your AWS Key pair file
-aws_keypair_name: ""
-aws_security_groups: [""]
+aws_keypair_name: "" # Your Key Pairs on EC2 that match your private key
+aws_security_groups: [""] # The 'default' group probably don't have SSH permission
