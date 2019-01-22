@@ -1,4 +1,4 @@
-# Vagrant Docker
+# Deploy Toolscloud
 
 Project to run Docker containers in a VM using Vagrant.
 
@@ -13,7 +13,7 @@ This project helps you to create Toolscloud environment in multiple ways.
 
 ## Installation
 
-If you already have [Docker](https://www.docker.com/) and [Docker Compose](https://docs.docker.com/compose/) installed on your machine, you can go directly to [Using Toolscloud](#Run-Toolscloud) instead of running from a VM.
+If you already have [Docker](https://www.docker.com/) and [Docker Compose](https://docs.docker.com/compose/) installed on your machine, you can go directly to [Using Toolscloud](#Using-Toolscloud) instead of running from a VM.
 
 ### Prerequisites
 
@@ -65,7 +65,7 @@ All the process is very similar comparing to the local VM. But this time you wil
    ```bash
    xcode-select --install 
    ```
-   This command will popup a window asking to install XCode and to accept a software license. when it's finished, try to install the plugin again.
+   This command will popup a window asking to install XCode and to accept a software license. When it's finished, try to install the plugin again.
 
 2. Time to execute the AWS instance.
    ```bash
@@ -86,8 +86,8 @@ All the process is very similar comparing to the local VM. But this time you wil
    ```yaml
    access_key_id: "ABCDEF1234567ABCD123"
    secret_access_key: "sometHingbigwithnumbers423ANdlotsOfWOrds"
-   ssh_private_key_path: "~/.ssh/id_rsa_rcmoutinho"
-   aws_keypair_name: "id_rsa_rcmoutinho"
+   ssh_private_key_path: "~/.ssh/id_rsa_username"
+   aws_keypair_name: "id_rsa_username"
    aws_security_groups: [ "default", "toolscloud-service" ]
    ```
 
