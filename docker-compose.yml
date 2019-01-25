@@ -1,30 +1,20 @@
 version: '3'
 
-volumes:
-  postgresql-etc:
-  nexus-etc:
-
 services: 
   ldap:
     image: toolscloud/ldap:v8.1-dev
     volumes:
-      - ${TOOLSCLOUD_BASE_FOLDER}/ldap:/var/lib/ldap
-      - ${TOOLSCLOUD_BASE_FOLDER}/openldap-data:/usr/local/var/openldap-data
-    networks:
-      - general
+      - ldap-lib:/var/lib/ldap
+      - ldap-data:/usr/local/var/openldap-data
   
   postgresql:
     image: toolscloud/postgresql:v8.0
     volumes: 
-      - ${TOOLSCLOUD_BASE_FOLDER}/postgresql:/var/lib/postgresql
-      - postgresql-etc:/run/postgresql
-    networks:
-      - general
+      - postgresql-data:/var/lib/postgresql
+      - postgresql-run:/run/postgresql
 
   pla: 
     image: toolscloud/phpldapadmin:v8.0
-    networks:
-      - general
   
   git:
     image: toolscloud/gitblit:v8.1-dev
@@ -32,34 +22,30 @@ services:
       - "9418:9418"
       - "29418:29418"
     volumes: 
-      - ${TOOLSCLOUD_BASE_FOLDER}/gitblit-data:/opt/gitblit-data
-    networks:
-      - general
+      - gitblit-data:/opt/gitblit-data
   
   nexus:
     image: toolscloud/sonatype-nexus:v8.1-dev
     volumes: 
-      - ${TOOLSCLOUD_BASE_FOLDER}/nexus-data:/nexus-data
-      - ${TOOLSCLOUD_BASE_FOLDER}/nexus-backup:/nexus-backup
-      - nexus-etc:/sys/fs/cgroup
-      - nexus-etc:/run
-    networks:
-      - general
+      - nexus-data:/nexus-data
+      - nexus-backup:/nexus-backup
+      - nexus-cgroup:/sys/fs/cgroup
+      - nexus-run:/run
   
   redmine:
     image: toolscloud/redmine:v8.1-dev
-    networks:
-      - general
     environment: 
       - DB_TYPE=postgres
       - DB_NAME=redmine_production 
       - DB_USER=redmine
       - DB_PASS=!AdewhmOP@12
     volumes:
-      - ${TOOLSCLOUD_BASE_FOLDER}/redmine/data:/home/redmine/data
-      - ${TOOLSCLOUD_BASE_FOLDER}/redmine/log:/var/log/redmine
-      - ${TOOLSCLOUD_BASE_FOLDER}/redmine/config:/home/redmine/config
-      - ${TOOLSCLOUD_BASE_FOLDER}/redmine/files:/home/redmine/files
+      - redmine-data:/home/redmine/data
+      - redmine-log:/var/log/redmine
+      - redmine-config:/home/redmine/config
+      - redmine-files:/home/redmine/files
+    depends_on:
+      - postgresql
   
   jenkins:
     image: toolscloud/jenkins:v8.2-dev
@@ -67,41 +53,58 @@ services:
       - "50000:50000"
     user: root 
     volumes:
-      - ${TOOLSCLOUD_BASE_FOLDER}/jenkins-home:/var/jenkins_home
-      - ${TOOLSCLOUD_BASE_FOLDER}/.m2:/root/.m2
+      - jenkins-home:/var/jenkins_home
+      - jenkins-m2:/root/.m2
       - /var/run/docker.sock:/var/run/docker.sock
-    networks:
-      - general
   
   sonar:
     image: toolscloud/sonar-server:v8.1-dev
     environment:
       - DBMS=postgresql
     volumes: 
-      - ${TOOLSCLOUD_BASE_FOLDER}/sonar/extensions:/opt/sonar/extensions
-      - ${TOOLSCLOUD_BASE_FOLDER}/sonar/data:/opt/sonar/data
-    networks:
-      - general
+      - sonar-extensions:/opt/sonar/extensions
+      - sonar-data:/opt/sonar/data
+    depends_on:
+      - postgresql
   
   testlink:
     image: toolscloud/testlink:v8.0
     volumes:
-      - ${TOOLSCLOUD_BASE_FOLDER}/testlink/upload_area:/var/testlink/upload_area
-      - ${TOOLSCLOUD_BASE_FOLDER}/testlink/logs:/var/testlink/logs
-    networks:
-      - general
+      - testlink-upload-area:/var/testlink/upload_area
+      - testlink-logs:/var/testlink/logs
+    depends_on:
+      - postgresql
   
   manager:
     image: toolscloud/manager:v8.1-dev
     volumes:
-      - ${TOOLSCLOUD_BASE_FOLDER}/manager/apache2:/var/log/apache2
-      - ${TOOLSCLOUD_BASE_FOLDER}/manager/ssl/certs:/etc/ssl/certs
-      - ${TOOLSCLOUD_BASE_FOLDER}/manager/ssl/private:/etc/ssl/private
+      - manager-apache-logs:/var/log/apache2
+      - manager-ssl-certs:/etc/ssl/certs
+      - manager-ssl-private:/etc/ssl/private
     ports: 
       - "80:80"
       - "443:443"
-    networks:
-      - general
 
-networks:
-  general:
+volumes:
+  ldap-lib:
+  ldap-data:
+  postgresql-data:
+  postgresql-run:
+  gitblit-data:
+  nexus-data:
+  nexus-backup:
+  nexus-cgroup:
+  nexus-run:
+  redmine-data:
+  redmine-log:
+  redmine-config:
+  redmine-files:
+  jenkins-home:
+  jenkins-m2:
+  sonar-extensions:
+  sonar-data:
+  testlink-upload-area:
+  testlink-logs:
+  manager-apache-logs:
+  manager-ssl-certs:
+  manager-ssl-private:

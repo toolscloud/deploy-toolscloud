@@ -180,16 +180,10 @@ In case that you are using vagrant, you just need one command to get rid of the 
 vagrant destroy
 ```
 
-To do the cleanup only with Docker Compose, maybe you will need two steps depending on what you want.
+To do the cleanup only with Docker Compose, execute the following command to remove all containers, networks, and unnamed volumes.
 
-1. Remove all containers, networks, and volumes.
-   ```
-   docker-compose down
-   ```
-   If you want to remove the named volumes, type an extra flag `-v` on the command above.
+```
+docker-compose down
+```
 
-2. On the current model, Toolscloud stores all the data into a folder handled by the variable `TOOLSCLOUD_BASE_FOLDER` (default: `/tc-data`). So if you want to start from scratch in the next Compose provisioning, you will need to remove this folder. **IMPORTANT: you will remove permanently all your data from Toolscloud tools. Make sure that you have backups if it's needed.**
-   ```
-   rm -rf /tc-data
-   ```
-   Note: if you set a different value to `TOOLSCLOUD_BASE_FOLDER`, make sure to type the same value above.
+If you want to remove the named volumes, type an extra flag `-v` on the command above. **IMPORTANT: using this flag you will remove permanently all your data from Toolscloud tools. Make sure that you have backups if it's needed.**
