@@ -126,8 +126,7 @@ Everything you need to provision the whole stack from Toolscloud is ready to use
 * If you are running from Vagrant, don't forget to access the right folder before trying any of the following commands. All project's files were synced at the provisioning into `/vagrant` folder. You only need to execute `cd /vagrant` after accessing the machine via _ssh_.
 
 * There is a `.evn` file on the project root folder that defines some variables to Docker Compose provisioning.
-  * `COMPOSE_PROJECT_NAME=toolscloud` will provide the prefix `toolscloud` to all containers, volumes, and networks. 
-  * `TOOLSCLOUD_BASE_FOLDER=/tc-data` will configure all toolscloud volume to `/tc-data`. If you are using Compose locally, you may need to change it. For example, in OSX, to `/home/[my-username]/tc-data`. The value `~/tc-data` doesn't work in this case.
+  * `COMPOSE_PROJECT_NAME=toolscloud` will provide the prefix `toolscloud` to all containers, volumes, and networks.
 
 ### Docker Compose
 
