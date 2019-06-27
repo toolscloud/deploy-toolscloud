@@ -2,7 +2,7 @@ version: '3'
 
 services: 
   ldap:
-    image: toolscloud/ldap:v8.1-dev
+    image: toolscloud/ldap:v8.1
     volumes:
       - ldap-lib:/var/lib/ldap
       - ldap-data:/usr/local/var/openldap-data
@@ -17,7 +17,7 @@ services:
     image: toolscloud/phpldapadmin:v8.0
   
   git:
-    image: toolscloud/gitblit:v8.1-dev
+    image: toolscloud/gitblit:v8.1
     ports: 
       - "9418:9418"
       - "29418:29418"
@@ -25,7 +25,7 @@ services:
       - gitblit-data:/opt/gitblit-data
   
   nexus:
-    image: toolscloud/sonatype-nexus:v8.1-dev
+    image: toolscloud/sonatype-nexus:v8.2
     volumes: 
       - nexus-data:/nexus-data
       - nexus-backup:/nexus-backup
@@ -33,7 +33,7 @@ services:
       - nexus-run:/run
   
   redmine:
-    image: toolscloud/redmine:v8.1-dev
+    image: toolscloud/redmine:v8.1
     environment: 
       - DB_TYPE=postgres
       - DB_NAME=redmine_production 
@@ -48,7 +48,7 @@ services:
       - postgresql
   
   jenkins:
-    image: toolscloud/jenkins:v8.2-dev
+    image: toolscloud/jenkins:v8.3
     ports:
       - "50000:50000"
     user: root 
@@ -58,7 +58,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
   
   sonar:
-    image: toolscloud/sonar-server:v8.1-dev
+    image: toolscloud/sonar-server:v8.1
     environment:
       - DBMS=postgresql
     volumes: 
@@ -76,7 +76,7 @@ services:
       - postgresql
   
   manager:
-    image: toolscloud/manager:v8.1-dev
+    image: toolscloud/manager:v8.1
     volumes:
       - manager-apache-logs:/var/log/apache2
       - manager-ssl-certs:/etc/ssl/certs
