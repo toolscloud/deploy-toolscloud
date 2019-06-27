@@ -6,15 +6,21 @@ services:
     volumes:
       - ldap-lib:/var/lib/ldap
       - ldap-data:/usr/local/var/openldap-data
+    networks:
+      - general
   
   postgresql:
     image: toolscloud/postgresql:v8.0
     volumes: 
       - postgresql-data:/var/lib/postgresql
       - postgresql-run:/run/postgresql
+    networks:
+      - general
 
   pla: 
     image: toolscloud/phpldapadmin:v8.0
+    networks:
+      - general
   
   git:
     image: toolscloud/gitblit:v8.1
@@ -23,6 +29,8 @@ services:
       - "29418:29418"
     volumes: 
       - gitblit-data:/opt/gitblit-data
+    networks:
+      - general
   
   nexus:
     image: toolscloud/sonatype-nexus:v8.2
@@ -31,6 +39,8 @@ services:
       - nexus-backup:/nexus-backup
       - nexus-cgroup:/sys/fs/cgroup
       - nexus-run:/run
+    networks:
+      - general
   
   redmine:
     image: toolscloud/redmine:v8.1
@@ -46,6 +56,8 @@ services:
       - redmine-files:/home/redmine/files
     depends_on:
       - postgresql
+    networks:
+      - general
   
   jenkins:
     image: toolscloud/jenkins:v8.3
@@ -56,6 +68,8 @@ services:
       - jenkins-home:/var/jenkins_home
       - jenkins-m2:/root/.m2
       - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - general
   
   sonar:
     image: toolscloud/sonar-server:v8.1
@@ -66,6 +80,8 @@ services:
       - sonar-data:/opt/sonar/data
     depends_on:
       - postgresql
+    networks:
+      - general
   
   testlink:
     image: toolscloud/testlink:v8.0
@@ -74,6 +90,8 @@ services:
       - testlink-logs:/var/testlink/logs
     depends_on:
       - postgresql
+    networks:
+      - general
   
   manager:
     image: toolscloud/manager:v8.1
@@ -84,6 +102,11 @@ services:
     ports: 
       - "80:80"
       - "443:443"
+    networks:
+      - general
+
+networks:
+  general:
 
 volumes:
   ldap-lib:
