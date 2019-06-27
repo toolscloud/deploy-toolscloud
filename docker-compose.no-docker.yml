@@ -1,0 +1,144 @@
+version: '3'
+
+services: 
+  ldap:
+    image: toolscloud/ldap:v8.1
+    volumes:
+      - ldap-lib:/var/lib/ldap
+      - ldap-data:/usr/local/var/openldap-data
+    networks:
+      - general
+  
+  postgresql:
+    image: toolscloud/postgresql:v8.0
+    volumes: 
+      - postgresql-data:/var/lib/postgresql
+      - postgresql-run:/run/postgresql
+    networks:
+      - general
+
+  pla: 
+    image: toolscloud/phpldapadmin:v8.0
+    networks:
+      - general
+  
+  git:
+    image: toolscloud/gitblit:v8.1
+    ports: 
+      - "9418:9418"
+      - "29418:29418"
+    volumes: 
+      - gitblit-data:/opt/gitblit-data
+    depends_on:
+      - manager
+    networks:
+      - general
+  
+  nexus:
+    image: toolscloud/sonatype-nexus:v8.2
+    volumes: 
+      - nexus-data:/nexus-data
+      - nexus-backup:/nexus-backup
+      - nexus-cgroup:/sys/fs/cgroup
+      - nexus-run:/run
+    depends_on:
+      - manager
+    networks:
+      - general
+  
+  redmine:
+    image: toolscloud/redmine:v8.1
+    environment: 
+      - DB_TYPE=postgres
+      - DB_NAME=redmine_production 
+      - DB_USER=redmine
+      - DB_PASS=!AdewhmOP@12
+    volumes:
+      - redmine-data:/home/redmine/data
+      - redmine-log:/var/log/redmine
+      - redmine-config:/home/redmine/config
+      - redmine-files:/home/redmine/files
+    depends_on:
+      - postgresql
+      - manager
+    networks:
+      - general
+  
+  jenkins:
+    image: toolscloud/jenkins:v8.3-no-docker
+    ports:
+      - "50000:50000"
+    user: root 
+    volumes:
+      - jenkins-home:/var/jenkins_home
+      - jenkins-m2:/root/.m2
+    depends_on:
+      - manager
+    networks:
+      - general
+  
+  sonar:
+    image: toolscloud/sonar-server:v8.1
+    environment:
+      - DBMS=postgresql
+    volumes: 
+      - sonar-extensions:/opt/sonar/extensions
+      - sonar-data:/opt/sonar/data
+    depends_on:
+      - postgresql
+      - manager
+    networks:
+      - general
+  
+  testlink:
+    image: toolscloud/testlink:v8.0
+    volumes:
+      - testlink-upload-area:/var/testlink/upload_area
+      - testlink-logs:/var/testlink/logs
+    depends_on:
+      - postgresql
+      - manager
+    networks:
+      - general
+  
+  manager:
+    image: toolscloud/manager:v8.1
+    volumes:
+      - manager-apache-logs:/var/log/apache2
+      - manager-ssl-certs:/etc/ssl/certs
+      - manager-ssl-private:/etc/ssl/private
+    ports: 
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - ldap
+      - pla
+    networks:
+      - general
+
+networks:
+  general:
+
+volumes:
+  ldap-lib:
+  ldap-data:
+  postgresql-data:
+  postgresql-run:
+  gitblit-data:
+  nexus-data:
+  nexus-backup:
+  nexus-cgroup:
+  nexus-run:
+  redmine-data:
+  redmine-log:
+  redmine-config:
+  redmine-files:
+  jenkins-home:
+  jenkins-m2:
+  sonar-extensions:
+  sonar-data:
+  testlink-upload-area:
+  testlink-logs:
+  manager-apache-logs:
+  manager-ssl-certs:
+  manager-ssl-private:
