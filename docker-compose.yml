@@ -29,6 +29,8 @@ services:
       - "29418:29418"
     volumes: 
       - gitblit-data:/opt/gitblit-data
+    depends_on:
+      - manager
     networks:
       - general
   
@@ -39,6 +41,8 @@ services:
       - nexus-backup:/nexus-backup
       - nexus-cgroup:/sys/fs/cgroup
       - nexus-run:/run
+    depends_on:
+      - manager
     networks:
       - general
   
@@ -56,6 +60,7 @@ services:
       - redmine-files:/home/redmine/files
     depends_on:
       - postgresql
+      - manager
     networks:
       - general
   
@@ -68,6 +73,8 @@ services:
       - jenkins-home:/var/jenkins_home
       - jenkins-m2:/root/.m2
       - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      - manager
     networks:
       - general
   
@@ -80,6 +87,7 @@ services:
       - sonar-data:/opt/sonar/data
     depends_on:
       - postgresql
+      - manager
     networks:
       - general
   
@@ -90,6 +98,7 @@ services:
       - testlink-logs:/var/testlink/logs
     depends_on:
       - postgresql
+      - manager
     networks:
       - general
   
@@ -102,6 +111,9 @@ services:
     ports: 
       - "80:80"
       - "443:443"
+    depends_on:
+      - ldap
+      - pla
     networks:
       - general
 
