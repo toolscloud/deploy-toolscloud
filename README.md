@@ -142,7 +142,7 @@ IMPORTANT: Some of the tools, like Nexus, may take up to a minute to start. You 
 
 #### Tips
 
-You can start or stop containers any time you want and check containers information.
+You can start or stop containers any time you want and check containers information. The whole environment is composed of 10 containers. This may be too heavy to a local machine. No worries! You can execute only the tools that you want for the moment. And considering they all have dependency references, once you need to start _Jenkins_, other containers like _LDAP_, _PLA_ and _Manager_ will start too, making sure you will have everything you need.
 
 * Check all the services (containers)
   ```
@@ -160,16 +160,6 @@ You can start or stop containers any time you want and check containers informat
   ```
   docker-compose stop
   ```
-
-#### Partial Execution
-
-The whole environment is composed of 10 containers. This may be too heavy to a local machine. No worries! You can execute only the tools that you want for the moment. But keep in mind that three of those are always required: _LDAP_, _PLA_ and _Manager_. This is because all the requests are handled by the _Manager_ container and all the access handled by _LDAP_ (_PLA_ is only the way to check the LDAP's data, but it is super lightweight).
-
-Info you want only _Jenkins_, execute:
-
-```
-docker-compose up -d ldap pla manager jenkins
-```
 
 ## Cleanup
 
