@@ -9,6 +9,7 @@ This project helps you to create Toolscloud environment in multiple ways.
   * [ Locally ](#Locally)
   * [ AWS ](#AWS)
 * [ Using Toolscloud ](#Run-Toolscloud)
+  * [ Configure Let's Encrypt ](#Configure-Lets-Encrypt)
 * [ Cleanup ](#Cleanup)
 
 ## Installation
@@ -160,6 +161,14 @@ You can start or stop containers any time you want and check containers informat
   ```
   docker-compose stop
   ```
+
+### Configure Let's Encrypt
+
+After the docker-compose startup, execute the following command to complete Let's Encrypt configuration according to your desired information.
+
+```
+docker-compose exec -T manager certbot --apache --no-redirect
+```
 
 ## Cleanup
 

@@ -102,7 +102,7 @@ services:
       - general
   
   manager:
-    image: toolscloud/manager:v8.1
+    image: toolscloud/manager:v8.3
     volumes:
       - manager-apache-logs:/var/log/apache2
       - manager-ssl-certs:/etc/ssl/certs
